@@ -175,21 +175,21 @@ class UserLoginView(APIView):
         username = serializer.data.get('username')
         password = serializer.data.get('password')
         user = authenticate(username=username, password=password)
-        data=User.objects.get(username=user)
-        newdata={
-            "id":data.id,
-            "username":data.username,
-            "email":data.email,
-            "first_name":data.first_name,
-            "last_name":data.last_name,
-            "mobile":data.mobile,
-            "is_active":data.is_active,
-            "is_superuser":data.is_superuser,
-            "is_zoho_active":data.is_zoho_active,
-        }
-        print("-----------------",newdata)
-        print("-----------------",type(data))
         if user is not None:
+            data=User.objects.get(username=user)
+            newdata={
+                "id":data.id,
+                "username":data.username,
+                "email":data.email,
+                "first_name":data.first_name,
+                "last_name":data.last_name,
+                "mobile":data.mobile,
+                "is_active":data.is_active,
+                "is_superuser":data.is_superuser,
+                "is_zoho_active":data.is_zoho_active,
+            }
+            print("-----------------",newdata)
+            print("-----------------",type(data))
             token = get_tokens_for_user(user)
             json_data={
                 'status_code':201,
