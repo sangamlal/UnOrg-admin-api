@@ -169,54 +169,64 @@ class SignupUser(APIView):
 
 class UserLoginView(APIView):
 
-  def post(self, request, format=None):
-    serializer = UserLoginSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        username = serializer.data.get('username')
-        password = serializer.data.get('password')
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            data=User.objects.get(username=user)
-            newdata={
-                "id":data.id,
-                "username":data.username,
-                "email":data.email,
-                "first_name":data.first_name,
-                "last_name":data.last_name,
-                "mobile":data.mobile,
-                "is_active":data.is_active,
-                "is_superuser":data.is_superuser,
-                "is_zoho_active":data.is_zoho_active,
-            }
-            print("-----------------",newdata)
-            print("-----------------",type(data))
-            token = get_tokens_for_user(user)
-            json_data={
-                'status_code':201,
-                'status':'Success',
-                'data':newdata,
-                'refresh': str(token.get("refresh")),
-                'access': str(token.get("access")),
-                'message':'User login success'
-                }
-            return Response(json_data,status.HTTP_201_CREATED)
-            
-        else:
-            json_data={
-                'status_code':401,
+    def post(self, request, format=None):
+        try:
+            serializer = UserLoginSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                username = serializer.data.get('username')
+                password = serializer.data.get('password')
+                user = authenticate(username=username, password=password)
+                if user is not None:
+                    data=User.objects.get(username=user)
+                    newdata={
+                        "id":data.id,
+                        "username":data.username,
+                        "email":data.email,
+                        "first_name":data.first_name,
+                        "last_name":data.last_name,
+                        "mobile":data.mobile,
+                        "is_active":data.is_active,
+                        "is_superuser":data.is_superuser,
+                        "is_zoho_active":data.is_zoho_active,
+                    }
+                    print("-----------------",newdata)
+                    print("-----------------",type(data))
+                    token = get_tokens_for_user(user)
+                    json_data={
+                        'status_code':201,
+                        'status':'Success',
+                        'data':newdata,
+                        'refresh': str(token.get("refresh")),
+                        'access': str(token.get("access")),
+                        'message':'User login success'
+                        }
+                    return Response(json_data,status.HTTP_201_CREATED)
+                    
+                else:
+                    json_data={
+                        'status_code':200,
+                        'status':'Failed',
+                        'error':"User name or Password is incorrect",
+                        }
+                    return Response(json_data,status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data={
+                'status_code':200,
                 'status':'Failed',
-                'error':"User name or Password is incorrect",
+                'error':serializer.errors,
+                'remark':'Serializer error'
                 }
-            return Response(json_data,status.HTTP_401_UNAUTHORIZED)
-    else:
-        print("I am api called-------")
-        json_data={
-        'status_code':200,
-        'status':'Failed',
-        'error':serializer.errors,
-        'remark':'Serializer error'
-        }
-        return Response(json_data,status.HTTP_200_OK)
+                return Response(json_data,status.HTTP_200_OK)
+        except Exception as err:
+            print("Error :",err)
+            json_data={
+                'status_code':500,
+                'status':'Failed',
+                'error':err,
+                'remark':'Landed in exception',
+            }
+            return Response(json_data,status.HTTP_500_INTERNAL_SERVER_ERROR)
             
     
 
