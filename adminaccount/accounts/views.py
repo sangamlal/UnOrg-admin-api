@@ -318,8 +318,8 @@ class UserList_fun(APIView):
         try:
             print("--------------")
 
-            activeuserinfo=User.objects.filter(is_zoho_active=1)
-            inactiveuserinfo=User.objects.filter(is_zoho_active=0)
+            activeuserinfo=User.objects.filter(is_zoho_active=1 , is_superuser=0)
+            inactiveuserinfo=User.objects.filter(is_zoho_active=0, is_superuser=0)
             activeuserlist=[{"id":data.id,"username":data.username,"first_name":data.first_name,"mobile":data.mobile,"email":data.email,"first_name":data.first_name,"last_name":data.last_name ,'is_zoho_active':data.is_zoho_active} for data in activeuserinfo]
             inactiveuserlist=[{"id":data.id,"username":data.username,"first_name":data.first_name,"mobile":data.mobile,"email":data.email,"first_name":data.first_name,"last_name":data.last_name ,'is_zoho_active':data.is_zoho_active} for data in inactiveuserinfo]
             # print(list(activeuserinfo),"============",activeuserlist)
