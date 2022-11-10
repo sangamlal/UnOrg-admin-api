@@ -457,6 +457,9 @@ class AddZohoCredential(APIView):
                     userinfo.accesstoken=response.get('access_token','')
                     userinfo.refreshtoken=response.get('refresh_token','')
                     userinfo.save()
+                    datauser=User.objects.filter(id=userinfo.userid)
+                    datauser.update(is_active=1)
+                    
                     json_data={
                     'status_code':200,
                     'status':'Success',
