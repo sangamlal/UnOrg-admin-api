@@ -372,6 +372,7 @@ class GetUserDetail_fun(APIView):
                 json_data={
                 'status_code':204,
                 'status':'Success',
+                'data':'',
                 'message':'User not found'
                 }
                 return Response(json_data,status.HTTP_204_NO_CONTENT)
