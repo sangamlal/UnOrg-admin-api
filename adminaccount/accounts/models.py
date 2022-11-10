@@ -10,14 +10,15 @@ from django.utils.translation import gettext_lazy as _
 class User(AbstractUser):
     
     mobile=models.CharField(_("Mobile") ,max_length=15)
+    is_zoho_active=models.IntegerField(default=0)
 
     def __str__(self) :
         return self.username
 
 
 class zohoaccount(models.Model):
-    userid =models.IntegerField()
-    clientid=models.CharField(max_length=100)
+    userid =models.ForeignKey(User, on_delete=models.CASCADE)
+    clientid=models.CharField(max_length=100,unique=True)
     clientsecret=models.CharField(max_length=200)
     accesstoken=models.CharField(max_length=400)
     refreshtoken=models.CharField(max_length=400)

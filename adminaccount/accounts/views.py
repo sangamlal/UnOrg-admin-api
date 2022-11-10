@@ -44,7 +44,7 @@ class SignupUser(APIView):
                     first_name=serializer.validated_data.get('first_name',''),
                     last_name=serializer.validated_data.get('last_name',''),
                     mobile=serializer.validated_data.get('mobile',''),
-                    is_active=0
+                    is_zoho_active=0
                 )
                 user.set_password(serializer.validated_data['password'])
                 user.save()
@@ -175,12 +175,26 @@ class UserLoginView(APIView):
         username = serializer.data.get('username')
         password = serializer.data.get('password')
         user = authenticate(username=username, password=password)
+        data=User.objects.get(username=user)
+        newdata={
+            "id":data.id,
+            "username":data.username,
+            "email":data.email,
+            "first_name":data.first_name,
+            "last_name":data.last_name,
+            "mobile":data.mobile,
+            "is_active":data.is_active,
+            "is_superuser":data.is_superuser,
+            "is_zoho_active":data.is_zoho_active,
+        }
+        print("-----------------",newdata)
+        print("-----------------",type(data))
         if user is not None:
             token = get_tokens_for_user(user)
             json_data={
                 'status_code':201,
                 'status':'Success',
-                'username':str(user),
+                'data':newdata,
                 'refresh': str(token.get("refresh")),
                 'access': str(token.get("access")),
                 'message':'User login success'
