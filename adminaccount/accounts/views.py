@@ -430,7 +430,7 @@ class AddZohoCredential(APIView):
                 redirecturi = serializer.validated_data.get('redirecturi', '')
                 print(redirecturi, "-------------", clientid)
                 emailBody = "UnOrg code : "+str(zohodata.id)+"<br>https://accounts.zoho.com/oauth/v2/auth?scope=ZohoBooks.invoices.CREATE,ZohoBooks.invoices.READ,ZohoBooks.invoices.UPDATE,ZohoBooks.invoices.DELETE&client_id=" + \
-                    clientid+"&state=testing&response_type=code&redirect_uri=" + \
+                    clientid+"&state="+str(zohodata.id)+"&response_type=code&redirect_uri=" + \
                     redirecturi+"&access_type=offline"
                 emailSubject = "Get Zoho Code "
                 subject, from_email, to = emailSubject, 'UnOrg <shwetanshumishra1999@gmail.com>', [
