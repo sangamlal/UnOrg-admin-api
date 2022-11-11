@@ -28,3 +28,14 @@ class zohoaccount(models.Model):
     # def __str__(self) :
     #     return (self.id,self.clientid,self.userid,self.clientsecret,self.accesstoken,self.refreshtoken,self.redirecturi,self.is_deleted,self.created_at)
 
+
+class vehicleinfo(models.Model):
+    userid =models.ForeignKey(User, on_delete=models.CASCADE)
+    password=models.CharField(max_length=100)
+    vehiclename=models.CharField(max_length=200)
+    maxorders=models.CharField(max_length=400)
+    weightcapacity=models.CharField(max_length=400)
+    phone=models.CharField(max_length=400)
+    is_deleted=models.BooleanField(default=0)
+    created_at=models.DateTimeField(auto_now=True)
+   

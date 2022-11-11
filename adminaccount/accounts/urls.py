@@ -13,4 +13,7 @@ urlpatterns = [
     path('velidateaccesstoken',views.VelidateAccessToken.as_view()),
     path('getzohocredential',views.GetZohoCredential_cls.as_view()),
     path('sendredirecturiemail',views.SendRedirectUriEmail.as_view()),
+    path('vehicleregistration',views.VehicleRegistration.as_view()),
+    path('editvehicleregistration',views.EditVehicleRegistration.as_view()),
+    path('vehiclelogin',views.VehicleLogin.as_view()),
 ]

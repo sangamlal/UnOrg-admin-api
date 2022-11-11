@@ -96,3 +96,20 @@ class SendRedirectUriEmailSerializer(serializers.Serializer):
     class Meta:
         fields = '__all__'
 
+
+class VehicleRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = vehicleinfo
+        fields = ['userid', 'password', 'vehiclename', 'maxorders', 'weightcapacity', 'phone']
+
+class EditVehicleRegistrationSerializer(serializers.ModelSerializer):
+    vehicleinfoid = serializers.CharField(required=True)
+    class Meta:
+        model = vehicleinfo
+        fields = ['vehicleinfoid',  'vehiclename', 'maxorders', 'weightcapacity', 'phone']
+
+class VehicleLoginSerializer(serializers.Serializer):
+    vehicleinfoid = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+    class Meta:
+        fields = '__all__'
