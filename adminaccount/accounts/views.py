@@ -237,52 +237,41 @@ class VelidateAccessToken(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None):
         try:
-            serializer = ValidateAccesstokenSerializer(data=request.data)
-            if serializer.is_valid(raise_exception=True):
+            
+            datacheck=User.objects.filter(email=request.user.email)
+            #Check Data 
+            if datacheck:
+                #Getting data of user
+                data = User.objects.get(email=request.user.email)
+                newdata = {
+                    "id": data.id,
+                    "username": data.username,
+                    "email": data.email,
+                    "first_name": data.first_name,
+                    "last_name": data.last_name,
+                    "mobile": data.mobile,
+                    "is_active": data.is_active,
+                    "is_superuser": data.is_superuser,
+                    "is_zoho_active": data.is_zoho_active,
+                }
+                
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Success',
+                    'data': newdata,
+                    'message': 'User token validated'
+                }
+                return Response(json_data, status.HTTP_200_OK)
 
-                userid = serializer.data.get('userid')
-                datacheck=User.objects.filter(id=userid)
-                #Check Data 
-                if datacheck:
-                    #Getting data of user
-                    data = User.objects.get(id=userid)
-                    newdata = {
-                        "id": data.id,
-                        "username": data.username,
-                        "email": data.email,
-                        "first_name": data.first_name,
-                        "last_name": data.last_name,
-                        "mobile": data.mobile,
-                        "is_active": data.is_active,
-                        "is_superuser": data.is_superuser,
-                        "is_zoho_active": data.is_zoho_active,
-                    }
-                   
-                    json_data = {
-                        'status_code': 200,
-                        'status': 'Success',
-                        'data': newdata,
-                        'message': 'User login success'
-                    }
-                    return Response(json_data, status.HTTP_200_OK)
-
-                else:
-                    json_data = {
-                        'status_code': 200,
-                        'status': 'Failed',
-                        'data': '',
-                        'error': "User name or Password is incorrect",
-                    }
-                    return Response(json_data, status.HTTP_200_OK)
             else:
-                print("I am api called-------")
                 json_data = {
                     'status_code': 200,
                     'status': 'Failed',
-                    'error': serializer.errors,
-                    'remark': 'Serializer error'
+                    'data': '',
+                    'error': "User not found",
                 }
                 return Response(json_data, status.HTTP_200_OK)
+        
         except Exception as err:
             print("Error :", err)
             json_data = {
@@ -604,3 +593,66 @@ class AddZohoCredential(APIView):
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class GetZohoCredential_cls(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None):
+        try:
+            serializer = ValidateAccesstokenSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+
+                userid = serializer.data.get('userid')
+                datacheck=User.objects.filter(id=userid)
+                #Check Data 
+                if datacheck:
+                    #Getting data of user
+                    data = User.objects.get(id=userid)
+                    newdata = {
+                        "id": data.id,
+                        "username": data.username,
+                        "email": data.email,
+                        "first_name": data.first_name,
+                        "last_name": data.last_name,
+                        "mobile": data.mobile,
+                        "is_active": data.is_active,
+                        "is_superuser": data.is_superuser,
+                        "is_zoho_active": data.is_zoho_active,
+                    }
+                   
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': newdata,
+                        'message': 'User login success'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Failed',
+                        'data': '',
+                        'error': "User name or Password is incorrect",
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_200_OK)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
