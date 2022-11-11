@@ -414,7 +414,7 @@ class UserList_fun(APIView):
 
 class GetUserDetail_fun(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request):
+    def post(self, request):
         try:
             print("--------------")
 
