@@ -337,7 +337,10 @@ class SendZohoRegistrationLink_fun(APIView):
                                                         https://api-console.zoho.in
                                                         </a>
                                                         <br>
-                                                        http://localhost:5173/add-credetial?id="""+str(zohodata.id)+""""
+                                                        <strong>Open This URL To Enter Credentials</strong>
+                                                        http://localhost:5173/add-credential?id="""+str(zohodata.id)+""""
+                                                        <strong>Redirect URL</strong>
+                                                        http://localhost:5173/add-access
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -519,21 +522,21 @@ class AddZohoCredential(APIView):
                     print("=========get data==", datauser)
                     # Email Send Process Start
                 
-                    clientid = serializer.validated_data.get('clientid', '')
-                    redirecturi = serializer.validated_data.get('redirecturi', '')
-                    # print(redirecturi, "-------------", clientid)
-                    emailBody = "UnOrg code : "+str(getdatauser.id)+"<br>https://accounts.zoho.com/oauth/v2/auth?scope=ZohoBooks.invoices.CREATE,ZohoBooks.invoices.READ,ZohoBooks.invoices.UPDATE,ZohoBooks.invoices.DELETE&client_id=" + \
-                        clientid+"&state="+str(getdatauser.id)+"&response_type=code&redirect_uri=" + \
-                        redirecturi+"&access_type=offline"
-                    emailSubject = "Get Zoho Code "
-                    subject, from_email, to = emailSubject, 'UnOrg <shwetanshumishra1999@gmail.com>', [
-                        getdatauser.userid.email]
-                    html_content = emailBody
-                    msg = EmailMultiAlternatives(
-                        subject, html_content, from_email, to)
-                    msg.attach_alternative(html_content, "text/html")
-                    print("Client Mail sent successfullly")
-                    msg.send()
+                    # clientid = serializer.validated_data.get('clientid', '')
+                    # redirecturi = serializer.validated_data.get('redirecturi', '')
+                    # # print(redirecturi, "-------------", clientid)
+                    # emailBody = "UnOrg code : "+str(getdatauser.id)+"<br>https://accounts.zoho.com/oauth/v2/auth?scope=ZohoBooks.invoices.CREATE,ZohoBooks.invoices.READ,ZohoBooks.invoices.UPDATE,ZohoBooks.invoices.DELETE&client_id=" + \
+                    #     clientid+"&state="+str(getdatauser.id)+"&response_type=code&redirect_uri=" + \
+                    #     redirecturi+"&access_type=offline"
+                    # emailSubject = "Get Zoho Code "
+                    # subject, from_email, to = emailSubject, 'UnOrg <shwetanshumishra1999@gmail.com>', [
+                    #     getdatauser.userid.email]
+                    # html_content = emailBody
+                    # msg = EmailMultiAlternatives(
+                    #     subject, html_content, from_email, to)
+                    # msg.attach_alternative(html_content, "text/html")
+                    # print("Client Mail sent successfullly")
+                    # msg.send()
                     # Email Send Process Start
                 
                 
