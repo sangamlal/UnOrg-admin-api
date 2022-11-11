@@ -290,7 +290,14 @@ class SendZohoRegistrationLink_fun(APIView):
         try:
             serializer = SendZohoRegistrationLinkSerializer(data=request.data)
             if serializer.is_valid():
-                # userid=User.objects.filter(id=serializer.data.get('userid'))
+                checckuserid=User.objects.filter(id=serializer.data.get('userid'))
+                if not checckuserid:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Failed',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
                 userid=User.objects.get(id=serializer.data.get('userid'))
                 userid=userid
                 print("---llll ",userid)
@@ -330,7 +337,7 @@ class SendZohoRegistrationLink_fun(APIView):
                                                         https://api-console.zoho.in
                                                         </a>
                                                         <br>
-                                                        http://localhost/add-credetial?id="""+str(zohodata.id)+""""
+                                                        http://localhost:5173/add-credetial?id="""+str(zohodata.id)+""""
                                                     </td>
                                                 </tr>
                                             </tbody>
