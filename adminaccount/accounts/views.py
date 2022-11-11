@@ -362,6 +362,7 @@ class SendZohoRegistrationLink_fun(APIView):
                     json_data = {
                         'status_code': 200,
                         'status': 'Success',
+                        'zohoaccountid': zohodata.id,
                         'message': 'Email Send Successfully'
                     }
                     return Response(json_data, status.HTTP_200_OK)
