@@ -418,7 +418,7 @@ class GetUserDetail_fun(APIView):
         try:
             print("--------------")
 
-            userdata = User.objects.filter(id=request.data.get("id"))
+            userdata = User.objects.filter(id=request.data.get("id") if request.data.get("id") else 0)
             userdetail = [{"id": data.id, "username": data.username, "first_name": data.first_name, "mobile": data.mobile,
                            "email": data.email, "first_name": data.first_name, "last_name": data.last_name} for data in userdata]
 
