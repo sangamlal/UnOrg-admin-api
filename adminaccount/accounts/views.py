@@ -1300,7 +1300,7 @@ class GetSlotDetail(APIView):
                     slotdata = slotinfo.objects.get(id=slotinfoid)
                     vehicledata={
                         'slotinfoid':slotdata.id,
-                        'vehiclename':slotdata.slottime,
+                        'slottime':slotdata.slottime,
                         'is_deleted':slotdata.is_deleted,
                         'created_at':slotdata.created_at,
                         'userid':slotdata.userid.id
