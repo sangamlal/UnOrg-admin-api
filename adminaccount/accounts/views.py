@@ -493,47 +493,61 @@ class AddZohoCredential(APIView):
             serializer = ZohoAccountSerializer(data=request.data)
             if serializer.is_valid():
                 #Saved zoho data into zohoaccount table 
-                zohodata = zohoaccount.objects.create(
-                    userid=serializer.validated_data['userid'],
-                    clientid=serializer.validated_data['clientid'],
-                    clientsecret=serializer.validated_data.get(
-                        'clientsecret', ''),
-                    accesstoken=serializer.validated_data.get(
-                        'accesstoken', ''),
-                    refreshtoken=serializer.validated_data.get(
-                        'refreshtoken', ''),
-                    redirecturi=serializer.validated_data.get(
-                        'redirecturi', ''),
-                    is_deleted=0,
-                    created_at=datetime.now(),
-                )
-                zohodata.save()
-                print("=========get data==", serializer.data.get('userid'))
-                # Email Send Process Start
-                UserObj = User.objects.get(id=serializer.data.get('userid'))
-                # print("000000  ",UserObj)
-                clientid = serializer.validated_data.get('clientid', '')
-                redirecturi = serializer.validated_data.get('redirecturi', '')
-                # print(redirecturi, "-------------", clientid)
-                emailBody = "UnOrg code : "+str(zohodata.id)+"<br>https://accounts.zoho.com/oauth/v2/auth?scope=ZohoBooks.invoices.CREATE,ZohoBooks.invoices.READ,ZohoBooks.invoices.UPDATE,ZohoBooks.invoices.DELETE&client_id=" + \
-                    clientid+"&state="+str(zohodata.id)+"&response_type=code&redirect_uri=" + \
-                    redirecturi+"&access_type=offline"
-                emailSubject = "Get Zoho Code "
-                subject, from_email, to = emailSubject, 'UnOrg <shwetanshumishra1999@gmail.com>', [
-                    UserObj.email]
-                html_content = emailBody
-                msg = EmailMultiAlternatives(
-                    subject, html_content, from_email, to)
-                msg.attach_alternative(html_content, "text/html")
-                print("Client Mail sent successfullly")
-                msg.send()
-                # Email Send Process Start
+                # zohodata = zohoaccount.objects.create(
+                #     userid=serializer.validated_data['userid'],
+                #     clientid=serializer.validated_data['clientid'],
+                #     clientsecret=serializer.validated_data.get(
+                #         'clientsecret', ''),
+                #     accesstoken=serializer.validated_data.get(
+                #         'accesstoken', ''),
+                #     refreshtoken=serializer.validated_data.get(
+                #         'refreshtoken', ''),
+                #     redirecturi=serializer.validated_data.get(
+                #         'redirecturi', ''),
+                #     is_deleted=0,
+                #     created_at=datetime.now(),
+                # )
+                # zohodata.save()
+                datauser = zohoaccount.objects.filter(id=serializer.data.get(
+                        'zohoaccountid', ''))
+                if datauser:
+                    getdatauser = zohoaccount.objects.get(id=serializer.data.get(
+                        'zohoaccountid', ''))
+                    print("===========")
+                    datauser.update( clientid=serializer.validated_data['clientid'],
+                        clientsecret=serializer.validated_data.get(
+                            'clientsecret', ''),
+                        accesstoken=serializer.validated_data.get(
+                            'accesstoken', ''),
+                        refreshtoken=serializer.validated_data.get(
+                            'refreshtoken', ''),
+                        redirecturi=serializer.validated_data.get(
+                            'redirecturi', ''),)
+                    print("=========get data==", datauser)
+                    # Email Send Process Start
                 
-                if zohodata:
+                    clientid = serializer.validated_data.get('clientid', '')
+                    redirecturi = serializer.validated_data.get('redirecturi', '')
+                    # print(redirecturi, "-------------", clientid)
+                    emailBody = "UnOrg code : "+str(getdatauser.id)+"<br>https://accounts.zoho.com/oauth/v2/auth?scope=ZohoBooks.invoices.CREATE,ZohoBooks.invoices.READ,ZohoBooks.invoices.UPDATE,ZohoBooks.invoices.DELETE&client_id=" + \
+                        clientid+"&state="+str(getdatauser.id)+"&response_type=code&redirect_uri=" + \
+                        redirecturi+"&access_type=offline"
+                    emailSubject = "Get Zoho Code "
+                    subject, from_email, to = emailSubject, 'UnOrg <shwetanshumishra1999@gmail.com>', [
+                        getdatauser.userid.email]
+                    html_content = emailBody
+                    msg = EmailMultiAlternatives(
+                        subject, html_content, from_email, to)
+                    msg.attach_alternative(html_content, "text/html")
+                    print("Client Mail sent successfullly")
+                    msg.send()
+                    # Email Send Process Start
+                
+                
                     json_data = {
                         'status_code': 201,
                         'status': 'Success',
-                        'zohoaccount': zohodata.id,
+                        'zohoaccountid': getdatauser.id,
                         'message': 'Data saved'
                     }
                     return Response(json_data, status.HTTP_201_CREATED)

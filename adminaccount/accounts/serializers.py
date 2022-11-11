@@ -70,9 +70,10 @@ class GetUserListSerializer(serializers.ModelSerializer):
 
 
 class ZohoAccountSerializer(serializers.ModelSerializer):
+    zohoaccountid = serializers.CharField(required=True)
     class Meta:
         model = zohoaccount
-        fields = ['userid', 'clientid', 'clientsecret', 'redirecturi']
+        fields = ['zohoaccountid', 'clientid', 'clientsecret', 'redirecturi']
 
 
 class EditZohoAccountSerializer(serializers.Serializer):
