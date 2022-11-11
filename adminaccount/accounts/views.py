@@ -1062,7 +1062,7 @@ class DeleteVehicle(APIView):
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 class VehicleList_fun(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request):
+    def post(self, request):
         try:
             serializer = GetVehicleListSerializer(data=request.data)
             if serializer.is_valid():
