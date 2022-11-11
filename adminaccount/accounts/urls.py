@@ -17,4 +17,6 @@ urlpatterns = [
     path('editvehicleregistration',views.EditVehicleRegistration.as_view()),
     path('vehiclelogin',views.VehicleLogin.as_view()),
     path('getvehicledetail',views.GetVehicleDetail.as_view()),
+    path('deletevehicle',views.DeleteVehicle.as_view()),
+    path('vehiclelist',views.VehicleList_fun.as_view()),
 ]

@@ -793,7 +793,7 @@ class VehicleRegistration(APIView):
             if serializer.is_valid():
                 vechicleinfo = vehicleinfo.objects.create(
                     userid=serializer.validated_data['userid'],
-                    password=hashlib.md5(str(serializer.validated_data.get('password')).encode()).hexdigest() if serializer.validated_data.get('password') else '',
+                    password=serializer.validated_data.get('password') if serializer.validated_data.get('password') else '',
                     vehiclename=serializer.validated_data.get('vehiclename'),
                     maxorders=serializer.validated_data.get('maxorders'),
                     weightcapacity=serializer.validated_data.get('weightcapacity'),
@@ -905,10 +905,10 @@ class VehicleLogin(APIView):
             if serializer.is_valid():
                 vehicleinfoid = serializer.data.get('vehicleinfoid')
                 password = serializer.data.get('password')
-                data = vehicleinfo.objects.filter(id=vehicleinfoid,password=hashlib.md5(password.encode()).hexdigest())
+                data = vehicleinfo.objects.filter(id=vehicleinfoid,password=password)
                 print("---------",data)
                 if data:
-                    vehdata = vehicleinfo.objects.get(id=vehicleinfoid,password=hashlib.md5(password.encode()).hexdigest())
+                    vehdata = vehicleinfo.objects.get(id=vehicleinfoid,password=password)
                     vehicledata={
                         'vechicleinfoid':vehdata.id,
                         'vehiclename':vehdata.vehiclename,
@@ -1013,3 +1013,111 @@ class GetVehicleDetail(APIView):
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DeleteVehicle(APIView):
+    # Handling Post Reuqest
+    permission_classes = [IsAuthenticated]
+    def delete(self, request):
+        try:
+            serializer = GetVehicleDetailSerializer(data=request.data)
+            if serializer.is_valid():
+                vehicledata = vehicleinfo.objects.filter(id=serializer.data.get(
+                        'vehicleinfoid', ''))
+                if vehicledata:
+                    print("===========")
+                    vehicledata.update(is_deleted=1)
+                    print("=========get data==", vehicledata)
+
+                    json_data = {
+                        'status_code': 205,
+                        'status': 'Success',
+                        'message': 'Vehicle deleted successfully'
+                    }
+                    return Response(json_data, status.HTTP_205_RESET_CONTENT)
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'message': 'Vehicle not deleted'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+class VehicleList_fun(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            serializer = GetVehicleListSerializer(data=request.data)
+            if serializer.is_valid():
+                print("--------------",serializer.data.get('userid', ''))
+                vehicledata = User.objects.filter(id=serializer.data.get(
+                        'userid', ''))
+                if vehicledata:
+
+                    vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                        'userid', ''))
+                    print("=============",vehicleobj)
+                    
+                    vehiclelist = [{"id": data.id, "vehiclename": data.vehiclename, "phone": data.phone, 
+                                    "maxorders": data.maxorders, "weightcapacity": data.weightcapacity, 'userid': data.userid.id,'created_at': data.created_at,'password': data.password} for data in vehicleobj]
+                    print("---------",vehiclelist)
+                    if vehicleobj :
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'activeuser': vehiclelist,
+                            'message': 'Vehicle found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        print("================")
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'message': 'Vehicle not found'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
