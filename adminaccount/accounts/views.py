@@ -586,15 +586,15 @@ class AddZohoCredential(APIView):
                 response = requests.request(
                     "POST", url, headers=headers, data=payload).json()
 
-                print("--------------", userinfo)
+                print("--------------", response.get('access_token', ''))
 
                 if response.get('access_token'):
 
                     userinfo.accesstoken = response.get('access_token', '')
                     userinfo.refreshtoken = response.get('refresh_token', '')
                     userinfo.save()
-                    datauser = User.objects.filter(id=userinfo.userid)
-                    datauser.update(is_active=1)
+                    datauser = User.objects.filter(id=userinfo.userid.id)
+                    datauser.update(is_zoho_active=1)
 
                     json_data = {
                         'status_code': 200,
