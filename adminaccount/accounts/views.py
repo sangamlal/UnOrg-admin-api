@@ -1094,7 +1094,7 @@ class VehicleList_fun(APIView):
                             'status': 'Success',
                             'message': 'Vehicle not found'
                         }
-                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                        return Response(json_data, status.HTTP_200_OK)
                 else:
                     print("================")
                     json_data = {
@@ -1257,7 +1257,7 @@ class SlotList_fun(APIView):
                             'status': 'Success',
                             'message': 'Slot not found'
                         }
-                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                        return Response(json_data, status.HTTP_200_OK)
                 else:
                     print("================")
                     json_data = {
