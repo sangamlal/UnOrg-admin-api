@@ -600,43 +600,46 @@ class GetZohoCredential_cls(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None):
         try:
-            serializer = ValidateAccesstokenSerializer(data=request.data)
-            if serializer.is_valid(raise_exception=True):
+            serializer = GetZohoCredentialSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=False):
 
-                userid = serializer.data.get('userid')
-                datacheck=User.objects.filter(id=userid)
+                zohoid = serializer.data.get('zohoaccountid')
+                datacheck=zohoaccount.objects.filter(id=zohoid)
+                print("------",datacheck)
                 #Check Data 
                 if datacheck:
                     #Getting data of user
-                    data = User.objects.get(id=userid)
+                    data = zohoaccount.objects.get(id=zohoid)
+                    print("==========",data)
                     newdata = {
                         "id": data.id,
-                        "username": data.username,
-                        "email": data.email,
-                        "first_name": data.first_name,
-                        "last_name": data.last_name,
-                        "mobile": data.mobile,
-                        "is_active": data.is_active,
-                        "is_superuser": data.is_superuser,
-                        "is_zoho_active": data.is_zoho_active,
+                        "clientid": data.clientid,
+                        "clientsecret": data.clientsecret,
+                        "accesstoken": data.accesstoken,
+                        "refreshtoken": data.refreshtoken,
+                        "created_at": data.created_at,
+                        "is_deleted": data.is_deleted,
+                        "redirecturi": data.redirecturi,
+                        "userid": data.userid.id
                     }
+                    print("----------",newdata)
                    
                     json_data = {
-                        'status_code': 200,
-                        'status': 'Success',
-                        'data': newdata,
-                        'message': 'User login success'
+                    'status_code': 200,
+                    'status': 'Success',
+                    'data': newdata,
+                    'message': 'Data found'
                     }
                     return Response(json_data, status.HTTP_200_OK)
 
                 else:
                     json_data = {
-                        'status_code': 200,
+                        'status_code': 204,
                         'status': 'Failed',
                         'data': '',
-                        'error': "User name or Password is incorrect",
+                        'error': "Data not found",
                     }
-                    return Response(json_data, status.HTTP_200_OK)
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
             else:
                 print("I am api called-------")
                 json_data = {
