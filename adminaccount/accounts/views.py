@@ -453,10 +453,12 @@ class GetUserDetail_fun(APIView):
 
 class AddZohoCredential(APIView):
     # Handling Post Reuqest
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
             serializer = ZohoAccountSerializer(data=request.data)
             if serializer.is_valid():
+                #Saved zoho data into zohoaccount table 
                 zohodata = zohoaccount.objects.create(
                     userid=serializer.validated_data['userid'],
                     clientid=serializer.validated_data['clientid'],
@@ -472,13 +474,13 @@ class AddZohoCredential(APIView):
                     created_at=datetime.now(),
                 )
                 zohodata.save()
-                print("=========get data==", zohodata)
-                # Email Send Process
-                UserObj = User.objects.get(
-                    id=serializer.validated_data['userid'])
+                print("=========get data==", serializer.data.get('userid'))
+                # Email Send Process Start
+                UserObj = User.objects.get(id=serializer.data.get('userid'))
+                # print("000000  ",UserObj)
                 clientid = serializer.validated_data.get('clientid', '')
                 redirecturi = serializer.validated_data.get('redirecturi', '')
-                print(redirecturi, "-------------", clientid)
+                # print(redirecturi, "-------------", clientid)
                 emailBody = "UnOrg code : "+str(zohodata.id)+"<br>https://accounts.zoho.com/oauth/v2/auth?scope=ZohoBooks.invoices.CREATE,ZohoBooks.invoices.READ,ZohoBooks.invoices.UPDATE,ZohoBooks.invoices.DELETE&client_id=" + \
                     clientid+"&state="+str(zohodata.id)+"&response_type=code&redirect_uri=" + \
                     redirecturi+"&access_type=offline"
@@ -491,7 +493,8 @@ class AddZohoCredential(APIView):
                 msg.attach_alternative(html_content, "text/html")
                 print("Client Mail sent successfullly")
                 msg.send()
-                serializer.validated_data['userid']
+                # Email Send Process Start
+                
                 if zohodata:
                     json_data = {
                         'status_code': 201,
