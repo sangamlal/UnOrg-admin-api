@@ -492,22 +492,7 @@ class AddZohoCredential(APIView):
         try:
             serializer = ZohoAccountSerializer(data=request.data)
             if serializer.is_valid():
-                #Saved zoho data into zohoaccount table 
-                # zohodata = zohoaccount.objects.create(
-                #     userid=serializer.validated_data['userid'],
-                #     clientid=serializer.validated_data['clientid'],
-                #     clientsecret=serializer.validated_data.get(
-                #         'clientsecret', ''),
-                #     accesstoken=serializer.validated_data.get(
-                #         'accesstoken', ''),
-                #     refreshtoken=serializer.validated_data.get(
-                #         'refreshtoken', ''),
-                #     redirecturi=serializer.validated_data.get(
-                #         'redirecturi', ''),
-                #     is_deleted=0,
-                #     created_at=datetime.now(),
-                # )
-                # zohodata.save()
+               
                 datauser = zohoaccount.objects.filter(id=serializer.data.get(
                         'zohoaccountid', ''))
                 if datauser:
