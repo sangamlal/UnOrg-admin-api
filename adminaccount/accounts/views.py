@@ -410,7 +410,7 @@ class UserList_fun(APIView):
                     'status': 'Success',
                     'message': 'User not found'
                 }
-                return Response(json_data, status.HTTP_200_OK)
+                return Response(json_data, status.HTTP_204_NO_CONTENT)
 
         except Exception as err:
             print("Error :", err)
