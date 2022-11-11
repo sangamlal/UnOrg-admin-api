@@ -12,4 +12,5 @@ urlpatterns = [
     path('addzohoaccount',views.AddZohoCredential.as_view()),
     path('velidateaccesstoken',views.VelidateAccessToken.as_view()),
     path('getzohocredential',views.GetZohoCredential_cls.as_view()),
+    path('sendredirecturiemail',views.SendRedirectUriEmail.as_view()),
 ]

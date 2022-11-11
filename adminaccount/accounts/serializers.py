@@ -87,3 +87,12 @@ class GetZohoCredentialSerializer(serializers.Serializer):
     zohoaccountid = serializers.CharField(required=True)
     class Meta:
         fields = '__all__'
+
+
+class SendRedirectUriEmailSerializer(serializers.Serializer):
+
+    zohoaccountid = serializers.CharField(required=True)
+    
+    class Meta:
+        fields = '__all__'
+

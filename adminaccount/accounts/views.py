@@ -706,3 +706,77 @@ class GetZohoCredential_cls(APIView):
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+
+class SendRedirectUriEmail(APIView):
+    # Handling Post Reuqest
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = SendRedirectUriEmailSerializer(data=request.data)
+            if serializer.is_valid():
+               
+                datauser = zohoaccount.objects.filter(id=serializer.data.get(
+                        'zohoaccountid', ''))
+                if datauser:
+                    getdatauser = zohoaccount.objects.get(id=serializer.data.get(
+                        'zohoaccountid', ''))
+                    print("===========")
+                    
+                    print("=========get data==", datauser)
+                    print("=========get data==", getdatauser.userid.email)
+                    # Email Send Process Start
+                
+                    clientid = getdatauser.clientid
+                    redirecturi = getdatauser.redirecturi
+                    # print(redirecturi, "-------------", clientid)
+                    emailBody = "UnOrg code : "+str(getdatauser.id)+"<br>https://accounts.zoho.com/oauth/v2/auth?scope=ZohoBooks.invoices.CREATE,ZohoBooks.invoices.READ,ZohoBooks.invoices.UPDATE,ZohoBooks.invoices.DELETE&client_id=" + \
+                        clientid+"&state="+str(getdatauser.id)+"&response_type=code&redirect_uri=" + \
+                        redirecturi+"&access_type=offline"
+                    emailSubject = "Get Zoho Code "
+                    subject, from_email, to = emailSubject, 'UnOrg <shwetanshumishra1999@gmail.com>', [
+                        getdatauser.userid.email]
+                    html_content = emailBody
+                    msg = EmailMultiAlternatives(
+                        subject, html_content, from_email, to)
+                    msg.attach_alternative(html_content, "text/html")
+                    print("Client Mail sent successfullly")
+                    msg.send()
+                    # Email Send Process Start
+                
+                
+                    json_data = {
+                        'status_code': 201,
+                        'status': 'Success',
+                        'zohoaccountid': getdatauser.id,
+                        'message': 'Email send successfully'
+                    }
+                    return Response(json_data, status.HTTP_201_CREATED)
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_200_OK)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    
