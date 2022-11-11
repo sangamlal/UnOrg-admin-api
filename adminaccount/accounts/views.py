@@ -233,6 +233,66 @@ class UserLoginView(APIView):
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class VelidateAccessToken(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None):
+        try:
+            serializer = ValidateAccesstokenSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+
+                userid = serializer.data.get('userid')
+                datacheck=User.objects.filter(id=userid)
+                #Check Data 
+                if datacheck:
+                    #Getting data of user
+                    data = User.objects.get(id=userid)
+                    newdata = {
+                        "id": data.id,
+                        "username": data.username,
+                        "email": data.email,
+                        "first_name": data.first_name,
+                        "last_name": data.last_name,
+                        "mobile": data.mobile,
+                        "is_active": data.is_active,
+                        "is_superuser": data.is_superuser,
+                        "is_zoho_active": data.is_zoho_active,
+                    }
+                   
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': newdata,
+                        'message': 'User login success'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Failed',
+                        'data': '',
+                        'error': "User name or Password is incorrect",
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_200_OK)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class SendZohoRegistrationLink_fun(APIView):
     permission_classes = [IsAuthenticated]
@@ -320,7 +380,7 @@ class SendZohoRegistrationLink_fun(APIView):
 
 
 class UserList_fun(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
             print("--------------")
@@ -364,6 +424,7 @@ class UserList_fun(APIView):
 
 
 class GetUserDetail_fun(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
             print("--------------")

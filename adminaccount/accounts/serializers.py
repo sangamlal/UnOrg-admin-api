@@ -82,3 +82,8 @@ class EditZohoAccountSerializer(serializers.Serializer):
 
     class Meta:
         fields = '__all__'
+class ValidateAccesstokenSerializer(serializers.Serializer):
+
+    userid = serializers.CharField(required=True)
+    class Meta:
+        fields = '__all__'
