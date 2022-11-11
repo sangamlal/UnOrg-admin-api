@@ -113,3 +113,7 @@ class VehicleLoginSerializer(serializers.Serializer):
     password = serializers.CharField(required=True)
     class Meta:
         fields = '__all__'
+class GetVehicleDetailSerializer(serializers.Serializer):
+    vehicleinfoid = serializers.CharField(required=True)
+    class Meta:
+        fields = '__all__'

@@ -16,4 +16,5 @@ urlpatterns = [
     path('vehicleregistration',views.VehicleRegistration.as_view()),
     path('editvehicleregistration',views.EditVehicleRegistration.as_view()),
     path('vehiclelogin',views.VehicleLogin.as_view()),
+    path('getvehicledetail',views.GetVehicleDetail.as_view()),
 ]

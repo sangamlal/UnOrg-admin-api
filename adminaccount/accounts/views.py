@@ -956,3 +956,60 @@ class VehicleLogin(APIView):
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class GetVehicleDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetVehicleDetailSerializer(data=request.data)
+            if serializer.is_valid():
+                vehicleinfoid = serializer.data.get('vehicleinfoid')
+                data = vehicleinfo.objects.filter(id=vehicleinfoid)
+                print("---------",data)
+                if data:
+                    vehdata = vehicleinfo.objects.get(id=vehicleinfoid)
+                    vehicledata={
+                        'vechicleinfoid':vehdata.id,
+                        'vehiclename':vehdata.vehiclename,
+                        'maxorders':vehdata.maxorders,
+                        'weightcapacity':vehdata.weightcapacity,
+                        'phone':vehdata.phone,
+                        'is_deleted':vehdata.is_deleted,
+                        'created_at':vehdata.created_at,
+                        'userid':vehdata.userid.id
+                    }
+                    
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': vehicledata,
+                        'message': 'Vehicle found'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'Vehicle not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
