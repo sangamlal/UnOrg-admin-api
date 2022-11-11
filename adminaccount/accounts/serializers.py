@@ -49,8 +49,7 @@ class EditUserProfileSerializer(serializers.Serializer):
 
     id = serializers.CharField(required=True)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
-    username = serializers.CharField(required=False, allow_blank=True, allow_null=True, validators=[
-                                     UniqueValidator(queryset=User.objects.all())])
+    username = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     first_name = serializers.CharField(
         required=False, allow_blank=True, allow_null=True)
     last_name = serializers.CharField(
