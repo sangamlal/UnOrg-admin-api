@@ -16,7 +16,7 @@ from django.core.mail import EmailMultiAlternatives
 from .serializers import *
 from rest_framework import generics
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, zohoaccount,vehicleinfo
+from .models import User, zohoaccount,vehicleinfo,slotinfo
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from django.core import serializers
@@ -975,6 +975,7 @@ class GetVehicleDetail(APIView):
                         'maxorders':vehdata.maxorders,
                         'weightcapacity':vehdata.weightcapacity,
                         'phone':vehdata.phone,
+                        'password':vehdata.password,
                         'is_deleted':vehdata.is_deleted,
                         'created_at':vehdata.created_at,
                         'userid':vehdata.userid.id
@@ -1121,3 +1122,266 @@ class VehicleList_fun(APIView):
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class AddSlotInfo(APIView):
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = AddSlotSerializer(data=request.data)
+            if serializer.is_valid():
+                print("=======================")
+                slotobj = slotinfo.objects.create(
+                    userid=serializer.validated_data['userid'],
+                    slottime=serializer.validated_data.get('slottime'),
+                    is_deleted=0,
+                    created_at=datetime.now()
+                )
+                slotobj.save()
+                print("---------------",slotobj)
+                if slotobj:
+                    json_data = {
+                        'status_code': 201,
+                        'status': 'Success',
+                        'slotid': slotobj.id,
+                        'message': 'Slot created'
+                    }
+                    return Response(json_data, status.HTTP_201_CREATED)
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': 'Slot not created',
+                        'message': 'Slot not created'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class EditSlotInfo(APIView):
+    # Handling Post Reuqest
+    permission_classes = [IsAuthenticated]
+    def patch(self, request):
+        try:
+            serializer = EditSlotSerializer(data=request.data)
+            if serializer.is_valid():
+                vehicledata = slotinfo.objects.filter(id=serializer.data.get(
+                        'slotid', ''))
+                print("======22222",vehicledata)
+                if vehicledata:
+                    # getdatauser = vehicleinfo.objects.get(id=serializer.data.get(
+                    #     'vehicleinfoid', ''))
+                    print("===========")
+                    vehicledata.update( slottime=serializer.validated_data.get(
+                            'slottime', ''))
+                    print("=========get data==", vehicledata)
+
+                    json_data = {
+                        'status_code': 205,
+                        'status': 'Success',
+                        'vehicleinfoid': 'Slot data update',
+                        'message': 'Data updated successfully'
+                    }
+                    return Response(json_data, status.HTTP_205_RESET_CONTENT)
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'message': 'Data not updated'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SlotList_fun(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = GetSlotListSerializer(data=request.data)
+            if serializer.is_valid():
+                print("--------------",serializer.data.get('userid', ''))
+                vehicledata = User.objects.filter(id=serializer.data.get(
+                        'userid', ''))
+                if vehicledata:
+
+                    vehicleobj = slotinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                        'userid', ''))
+                    print("=============",vehicleobj)
+                    
+                    vehiclelist = [{"id": data.id, "slottime": data.slottime, 
+                                     'userid': data.userid.id,'created_at': data.created_at,'is_deleted': data.is_deleted} for data in vehicleobj]
+                    print("---------",vehiclelist)
+                    if vehicleobj :
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': vehiclelist,
+                            'message': 'Slot found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        print("================")
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'message': 'Slot not found'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetSlotDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetSlotDetailSerializer(data=request.data)
+            if serializer.is_valid():
+                slotinfoid = serializer.data.get('slotinfoid')
+                data = slotinfo.objects.filter(id=slotinfoid)
+                print("---------",data)
+                if data:
+                    slotdata = slotinfo.objects.get(id=slotinfoid)
+                    vehicledata={
+                        'slotinfoid':slotdata.id,
+                        'vehiclename':slotdata.slottime,
+                        'is_deleted':slotdata.is_deleted,
+                        'created_at':slotdata.created_at,
+                        'userid':slotdata.userid.id
+                    }
+                    
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': vehicledata,
+                        'message': 'Slot found'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'Slot not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DeleteSlot(APIView):
+    # Handling Post Reuqest
+    permission_classes = [IsAuthenticated]
+    def delete(self, request):
+        try:
+            serializer = GetSlotDetailSerializer(data=request.data)
+            if serializer.is_valid():
+                slotdata = slotinfo.objects.filter(id=serializer.data.get(
+                        'slotinfoid', ''))
+                if slotdata:
+                    print("===========")
+                    slotdata.update(is_deleted=1)
+                    print("=========get data==", slotdata)
+
+                    json_data = {
+                        'status_code': 205,
+                        'status': 'Success',
+                        'message': 'Slot deleted successfully'
+                    }
+                    return Response(json_data, status.HTTP_205_RESET_CONTENT)
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'message': 'Slot not deleted'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)

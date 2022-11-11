@@ -19,4 +19,9 @@ urlpatterns = [
     path('getvehicledetail',views.GetVehicleDetail.as_view()),
     path('deletevehicle',views.DeleteVehicle.as_view()),
     path('vehiclelist',views.VehicleList_fun.as_view()),
+    path('addslotinfo',views.AddSlotInfo.as_view()),
+    path('editslotinfo',views.EditSlotInfo.as_view()),
+    path('slotlist',views.SlotList_fun.as_view()),
+    path('getslotdetail',views.GetSlotDetail.as_view()),
+    path('deleteslot',views.DeleteSlot.as_view()),
 ]

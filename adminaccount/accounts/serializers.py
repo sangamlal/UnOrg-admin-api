@@ -121,3 +121,26 @@ class GetVehicleListSerializer(serializers.Serializer):
     userid = serializers.CharField(required=True)
     class Meta:
         fields = '__all__'
+
+
+class AddSlotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = slotinfo
+        fields = ['userid', 'slottime']
+class EditSlotSerializer(serializers.ModelSerializer):
+    slotid = serializers.CharField(required=True)
+    class Meta:
+        model = slotinfo
+        fields = ['slotid','slottime']
+
+
+class GetSlotListSerializer(serializers.Serializer):
+    userid = serializers.CharField(required=True)
+    class Meta:
+        fields = '__all__'
+
+class GetSlotDetailSerializer(serializers.Serializer):
+    slotinfoid = serializers.CharField(required=True)
+    class Meta:
+        fields = '__all__'
+

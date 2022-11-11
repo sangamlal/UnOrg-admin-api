@@ -38,4 +38,9 @@ class vehicleinfo(models.Model):
     phone=models.CharField(max_length=400)
     is_deleted=models.BooleanField(default=0)
     created_at=models.DateTimeField(auto_now=True)
+class slotinfo(models.Model):
+    userid =models.ForeignKey(User, on_delete=models.CASCADE)
+    slottime=models.CharField(max_length=100)
+    is_deleted=models.BooleanField(default=0)
+    created_at=models.DateTimeField(auto_now=True)
    
