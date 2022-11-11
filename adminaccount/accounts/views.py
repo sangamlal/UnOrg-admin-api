@@ -1082,7 +1082,7 @@ class VehicleList_fun(APIView):
                         json_data = {
                             'status_code': 200,
                             'status': 'Success',
-                            'activeuser': vehiclelist,
+                            'data': vehiclelist,
                             'message': 'Vehicle found'
                         }
                         return Response(json_data, status.HTTP_200_OK)
