@@ -18,7 +18,7 @@ class User(AbstractUser):
 
 class zohoaccount(models.Model):
     userid =models.ForeignKey(User, on_delete=models.CASCADE)
-    clientid=models.CharField(max_length=100,unique=True)
+    clientid=models.CharField(max_length=100)
     clientsecret=models.CharField(max_length=200)
     accesstoken=models.CharField(max_length=400)
     refreshtoken=models.CharField(max_length=400)

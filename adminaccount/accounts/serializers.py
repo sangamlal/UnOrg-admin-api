@@ -39,6 +39,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
 
 class SendZohoRegistrationLinkSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
+    userid = serializers.CharField(required=True)
 
     class Meta:
         fields = '__all__'

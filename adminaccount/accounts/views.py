@@ -290,7 +290,22 @@ class SendZohoRegistrationLink_fun(APIView):
         try:
             serializer = SendZohoRegistrationLinkSerializer(data=request.data)
             if serializer.is_valid():
-                print("-----------")
+                # userid=User.objects.filter(id=serializer.data.get('userid'))
+                userid=User.objects.get(id=serializer.data.get('userid'))
+                userid=userid
+                print("---llll ",userid)
+                zohodata = zohoaccount.objects.create(
+                    userid=userid,
+                    clientid='',
+                    clientsecret='',
+                    accesstoken='',
+                    refreshtoken='',
+                    redirecturi='',
+                    is_deleted=0,
+                    created_at=datetime.now(),
+                )
+                zohodata.save()
+                print("-----------",zohodata.id)
                 # html_message="https://api-console.zoho.in"
                 emailBody = """ 
                     <body style="background-color:grey">
@@ -314,6 +329,8 @@ class SendZohoRegistrationLink_fun(APIView):
                                                         <a href="https://api-console.zoho.in" style="text-decoration: none;">
                                                         https://api-console.zoho.in
                                                         </a>
+                                                        <br>
+                                                        http://localhost/add-credetial?id="""+str(zohodata.id)+""""
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -618,7 +635,7 @@ class AddZohoCredential(APIView):
 
 class GetZohoCredential_cls(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request, format=None):
+    def post(self, request, format=None):
         try:
             serializer = GetZohoCredentialSerializer(data=request.data)
             if serializer.is_valid(raise_exception=False):
