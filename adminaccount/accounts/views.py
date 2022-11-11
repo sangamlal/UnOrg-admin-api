@@ -418,24 +418,27 @@ class GetUserDetail_fun(APIView):
         try:
             print("--------------")
 
-            datacheck=zohoaccount.objects.filter(id=request.data.get("id") if request.data.get("id") else 0)
+            # userdata = User.objects.filter(id=request.data.get("id") if request.data.get("id") else 0)
+            # userdetail = [{"id": data.id, "username": data.username, "first_name": data.first_name, "mobile": data.mobile,
+            #                "email": data.email, "first_name": data.first_name, "last_name": data.last_name} for data in userdata]
+            datacheck=User.objects.filter(id=request.data.get("id") if request.data.get("id") else 0)
             print("------",datacheck)
             #Check Data 
             if datacheck:
                 #Getting data of user
-                data = zohoaccount.objects.get(id=request.data.get("id") if request.data.get("id") else 0)
+                data = User.objects.get(id=request.data.get("id") if request.data.get("id") else 0)
                 print("==========",data)
                 newdata = {
-                    "id": data.id,
-                    "clientid": data.clientid,
-                    "clientsecret": data.clientsecret,
-                    "accesstoken": data.accesstoken,
-                    "refreshtoken": data.refreshtoken,
-                    "created_at": data.created_at,
-                    "is_deleted": data.is_deleted,
-                    "redirecturi": data.redirecturi,
-                    "userid": data.userid.id
-                }
+                        "id": data.id,
+                        "username": data.username,
+                        "email": data.email,
+                        "first_name": data.first_name,
+                        "last_name": data.last_name,
+                        "mobile": data.mobile,
+                        "is_active": data.is_active,
+                        "is_superuser": data.is_superuser,
+                        "is_zoho_active": data.is_zoho_active,
+                    }
             
                 json_data = {
                     'status_code': 200,
