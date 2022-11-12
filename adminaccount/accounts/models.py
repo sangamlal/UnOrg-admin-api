@@ -53,3 +53,21 @@ class iteminfo(models.Model):
     created_at=models.DateTimeField(auto_now=True)
     is_deleted=models.BooleanField(default=0)
     updated_at=models.DateTimeField(auto_now=True)
+
+
+class orderinfo(models.Model):
+    userid =models.ForeignKey(User, on_delete=models.CASCADE)
+    shipping_address=models.CharField(max_length=400)
+    invoice_id=models.CharField(max_length=200)
+    customer_id=models.CharField(max_length=200)
+    weight =models.IntegerField()
+    customer_name=models.CharField(max_length=200)
+    invoice_number=models.CharField(max_length=200)
+    invoice_total=models.CharField(max_length=200)
+    invoice_balance=models.CharField(max_length=200)
+    time_slot=models.CharField(max_length=200)
+    contactno=models.CharField(max_length=200)
+    location_coordinates=models.CharField(max_length=200)
+    is_deleted=models.BooleanField(default=0)
+    updated_at=models.DateTimeField(auto_now=True)
+    created_date=models.DateTimeField(auto_now=True)
