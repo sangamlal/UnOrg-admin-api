@@ -27,4 +27,7 @@ urlpatterns = [
     path('addwarehousecoordinates',views.AddCoordinatesUser.as_view()),
     path('fetchinvoicedata',views.FetchInvoiceData.as_view()),
     path('additemapi',views.AddItemAPI.as_view()),
+    path('itemlist',views.ItemList_fun.as_view()),
+    path('getitemdetail',views.GetItemDetail.as_view()),
+    path('edititemInfo',views.EditItemInfo.as_view()),
 ]

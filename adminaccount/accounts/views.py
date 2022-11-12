@@ -1568,18 +1568,23 @@ class AddItemAPI(APIView):
                         print("llll ",response)
                         if response.status_code == 200:
                             data =   response.json()
-                            print(";;;;;;; ",data)
-                            accesstoken = data['access_token']
-                            zohodata = iteminfo.objects.create(
-                                userid=serializer.data.get('userid'),
-                                zoho_item_id='',
-                                item_name='',
-                                item_waight='1',
-                                created_at=datetime.now(),
-                                is_deleted=0,
-                                updated_at=datetime.now(),
-                            )
-                            zohodata.save()
+                            # print(";;;;;;; ",data)
+                            for d in data.get("items"):
+                                # check item id
+                                already=iteminfo.objects.filter(zoho_item_id=d.get('item_id', ''))
+                                userid=User.objects.get(id=serializer.data.get('userid'))
+                                if not already:
+                                    zohodata = iteminfo.objects.create(
+                                        userid=userid,
+                                        zoho_item_id=d.get('item_id'),
+                                        item_name=d.get('name'),
+                                        item_waight='1',
+                                        created_at=datetime.now(),
+                                        is_deleted=0,
+                                        updated_at=datetime.now(),
+                                    )
+                                    zohodata.save()
+                                else:print('Else')
                             
                             json_data = {
                                 'status_code': 201,
@@ -1628,3 +1633,179 @@ class AddItemAPI(APIView):
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class ItemList_fun(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = GetSlotListSerializer(data=request.data)
+            if serializer.is_valid():
+                print("--------------",serializer.data.get('userid', ''))
+                vehicledata = User.objects.filter(id=serializer.data.get(
+                        'userid', ''))
+                if vehicledata:
+
+                    vehicleobj = iteminfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                        'userid', ''))
+                    print("=============",vehicleobj)
+                    
+                    vehiclelist = [{"id": data.id, "zoho_item_id": data.zoho_item_id, 
+                                     'userid': data.userid.id,'created_at': data.created_at,'item_name': data.item_name,'item_waight': data.item_waight,'is_deleted': data.is_deleted} for data in vehicleobj]
+                    print("---------",vehiclelist)
+                    if vehicleobj :
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': vehiclelist,
+                            'message': 'Item found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        print("================")
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'message': 'Item not found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetItemDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetItemDetailSerializer(data=request.data)
+            if serializer.is_valid():
+                iteminfoid = serializer.data.get('iteminfoid')
+                data = iteminfo.objects.filter(id=iteminfoid)
+                print("---------",data)
+                if data:
+                    slotdata = iteminfo.objects.get(id=iteminfoid)
+                    vehicledata={
+                        'iteminfoid':slotdata.id,
+                        'zoho_item_id':slotdata.zoho_item_id,
+                        'item_name':slotdata.item_name,
+                        'item_waight':slotdata.item_waight,
+                        'created_at':slotdata.created_at,
+                        'is_deleted':slotdata.is_deleted,
+                        'updated_at':slotdata.updated_at,
+                        'userid':slotdata.userid.id
+                    }
+                  
+                    
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': vehicledata,
+                        'message': 'Item found'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'Item not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class EditItemInfo(APIView):
+    # Handling Post Reuqest
+    permission_classes = [IsAuthenticated]
+    def patch(self, request):
+        try:
+            serializer = EditItemDetailSerializer(data=request.data)
+            if serializer.is_valid():
+               
+                vehicledata = iteminfo.objects.filter(id=serializer.data.get(
+                        'iteminfoid', ''))
+                if vehicledata:
+                    # getdatauser = vehicleinfo.objects.get(id=serializer.data.get(
+                    #     'vehicleinfoid', ''))
+                    print("===========")
+                    vehicledata.update( 
+                        item_waight=serializer.validated_data.get(
+                            'item_waight', ''))
+                    print("=========get data==", vehicledata)
+
+                    json_data = {
+                        'status_code': 205,
+                        'status': 'Success',
+                        'data': 'Item data update',
+                        'message': 'Data updated successfully'
+                    }
+                    return Response(json_data, status.HTTP_205_RESET_CONTENT)
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'message': 'Data not updated'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+

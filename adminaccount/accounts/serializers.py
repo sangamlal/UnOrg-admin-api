@@ -153,3 +153,13 @@ class AddcordinatesSerializer(serializers.Serializer):
     class Meta:
         fields = '__all__'
 
+class GetItemDetailSerializer(serializers.Serializer):
+    iteminfoid = serializers.CharField(required=True)
+    class Meta:
+        fields = '__all__'
+
+class EditItemDetailSerializer(serializers.Serializer):
+    iteminfoid = serializers.CharField(required=True)
+    item_waight = serializers.CharField(required=True)
+    class Meta:
+        fields = '__all__'
