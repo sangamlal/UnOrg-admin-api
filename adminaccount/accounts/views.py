@@ -1649,11 +1649,11 @@ class ItemList_fun(APIView):
 
                     vehicleobj = iteminfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                         'userid', '')).order_by('item_waight')
-                    print("=============",vehicleobj)
+                    # print("=============",vehicleobj)
                     
                     vehiclelist = [{"id": data.id, "zoho_item_id": data.zoho_item_id, 
                                      'userid': data.userid.id,'created_at': data.created_at,'item_name': data.item_name,'item_waight': data.item_waight,'is_deleted': data.is_deleted} for data in vehicleobj]
-                    print("---------",vehiclelist)
+                    # print("---------",vehiclelist)
                     if vehicleobj :
                         json_data = {
                             'status_code': 200,
