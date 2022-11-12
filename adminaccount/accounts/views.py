@@ -1437,3 +1437,194 @@ class AddCoordinatesUser(APIView):
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class FetchInvoiceData(APIView):
+    permission_classes = [IsAuthenticated]
+    # Add warehouse cordinates Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetSlotListSerializer(data=request.data)
+            if serializer.is_valid():
+                usercordiantes = zohoaccount.objects.filter(userid=serializer.data.get(
+                        'userid', ''))
+                print("======22222",usercordiantes)
+                if usercordiantes:
+                    data=zohoaccount.objects.get(userid=serializer.data.get(
+                        'userid', ''))
+                    print("===========",data.refreshtoken)
+                    parameters = {
+                    # "refresh_token":data.refreshtoken,
+                    "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    # "client_id":data.clientid,
+                    "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
+                    # "client_secret":data.clientsecret,
+                    "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    # "redirect_uri":data.clientsecret,
+                    "redirect_uri":'https://www.google.co.in',
+                    "grant_type":"refresh_token",
+                }
+ 
+                response = requests.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
+                if response.status_code == 200:
+                    data =   response.json()
+                    accesstoken = data['access_token']
+                    print("------",accesstoken)
+                    currentdate=datetime.now().date()
+                    currentdate='2022-11-12'
+                    headers = {
+                    'Content-Type':'application/json',
+                    'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
+                        }
+
+                    response = requests.get("https://books.zoho.in/api/v3/invoices/1064041000000144003", headers=headers)
+                    if response.status_code == 200:
+                        data1 = response.json()
+                        print("My Invoice date ",data1.get("invoices"))
+                        json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'status': data1,
+                        'message': 'Coordinate updated'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    
+                    
+                    print("=========get data==", usercordiantes)
+
+              
+                if usercordiantes:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'message': 'Coordinate updated'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'message': 'Coordinate not updated'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class AddItemAPI(APIView):
+    permission_classes = [IsAuthenticated]
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetSlotListSerializer(data=request.data)
+            if serializer.is_valid():
+                usercordiantes = zohoaccount.objects.filter(userid=serializer.data.get(
+                        'userid', ''))
+                print("======22222",usercordiantes)
+                if usercordiantes:
+                    data=zohoaccount.objects.get(userid=serializer.data.get(
+                        'userid', ''))
+                    print("===========",data.refreshtoken)
+                    parameters = {
+                    # "refresh_token":data.refreshtoken,
+                    "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    # "client_id":data.clientid,
+                    "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
+                    # "client_secret":data.clientsecret,
+                    "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    # "redirect_uri":data.clientsecret,
+                    "redirect_uri":'https://www.google.co.in',
+                    "grant_type":"refresh_token",
+                    }
+
+                    response = requests.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
+                    if response.status_code == 200:
+                        data =   response.json()
+                        accesstoken = data['access_token']
+                        print("dddddddd ",accesstoken)
+
+                        headers = {
+                            'Content-Type':'application/json',
+                            'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
+                            }
+                        
+                        response = requests.get("https://books.zoho.in/api/v3/items", headers=headers)
+                        print("llll ",response)
+                        if response.status_code == 200:
+                            data =   response.json()
+                            print(";;;;;;; ",data)
+                            accesstoken = data['access_token']
+                            zohodata = iteminfo.objects.create(
+                                userid=serializer.data.get('userid'),
+                                zoho_item_id='',
+                                item_name='',
+                                item_waight='1',
+                                created_at=datetime.now(),
+                                is_deleted=0,
+                                updated_at=datetime.now(),
+                            )
+                            zohodata.save()
+                            
+                            json_data = {
+                                'status_code': 201,
+                                'status': 'Success',
+                                'data':data,
+                                'message': 'User created'
+                            }
+                            return Response(json_data, status.HTTP_201_CREATED)
+
+
+
+                # user.set_password(serializer.validated_data['password'])
+                # user.save()
+                # refresh = RefreshToken.for_user(user)
+                if 'user':
+                    json_data = {
+                        'status_code': 201,
+                        'status': 'Success',
+                        
+                        'message': 'User created'
+                    }
+                    return Response(json_data, status.HTTP_201_CREATED)
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': 'User not created',
+                        'message': 'data not created'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_200_OK)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)

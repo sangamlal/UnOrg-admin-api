@@ -25,4 +25,6 @@ urlpatterns = [
     path('getslotdetail',views.GetSlotDetail.as_view()),
     path('deleteslot',views.DeleteSlot.as_view()),
     path('addwarehousecoordinates',views.AddCoordinatesUser.as_view()),
+    path('fetchinvoicedata',views.FetchInvoiceData.as_view()),
+    path('additemapi',views.AddItemAPI.as_view()),
 ]
