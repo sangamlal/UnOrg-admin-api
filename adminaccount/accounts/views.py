@@ -1578,7 +1578,7 @@ class AddItemAPI(APIView):
                                         userid=userid,
                                         zoho_item_id=d.get('item_id'),
                                         item_name=d.get('name'),
-                                        item_waight='1',
+                                        item_waight='0',
                                         created_at=datetime.now(),
                                         is_deleted=0,
                                         updated_at=datetime.now(),
@@ -1648,7 +1648,7 @@ class ItemList_fun(APIView):
                 if vehicledata:
 
                     vehicleobj = iteminfo.objects.filter(is_deleted=0,userid=serializer.data.get(
-                        'userid', ''))
+                        'userid', '')).order_by('item_waight')
                     print("=============",vehicleobj)
                     
                     vehiclelist = [{"id": data.id, "zoho_item_id": data.zoho_item_id, 
