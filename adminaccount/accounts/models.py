@@ -49,7 +49,7 @@ class iteminfo(models.Model):
     userid =models.ForeignKey(User, on_delete=models.CASCADE)
     zoho_item_id=models.CharField(max_length=100)
     item_name=models.CharField(max_length=100)
-    item_waight=models.CharField(max_length=100)
+    item_waight=models.IntegerField()
     created_at=models.DateTimeField(auto_now=True)
     is_deleted=models.BooleanField(default=0)
     updated_at=models.DateTimeField(auto_now=True)
