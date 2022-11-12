@@ -1542,14 +1542,14 @@ class AddItemAPI(APIView):
                         'userid', ''))
                     print("===========",data.refreshtoken)
                     parameters = {
-                    # "refresh_token":data.refreshtoken,
-                    "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
-                    # "client_id":data.clientid,
-                    "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
-                    # "client_secret":data.clientsecret,
-                    "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
-                    # "redirect_uri":data.clientsecret,
-                    "redirect_uri":'https://www.google.co.in',
+                    "refresh_token":data.refreshtoken,
+                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    "client_id":data.clientid,
+                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
+                    "client_secret":data.clientsecret,
+                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    "redirect_uri":data.redirecturi,
+                    # "redirect_uri":'https://www.google.co.in',
                     "grant_type":"refresh_token",
                     }
 
