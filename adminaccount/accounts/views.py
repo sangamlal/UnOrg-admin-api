@@ -467,6 +467,8 @@ class GetUserDetail_fun(APIView):
                         "is_active": data.is_active,
                         "is_superuser": data.is_superuser,
                         "is_zoho_active": data.is_zoho_active,
+                        "longitude": data.longitude,
+                        "latitude": data.latitude,
                     }
             
                 json_data = {
