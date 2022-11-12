@@ -144,3 +144,12 @@ class GetSlotDetailSerializer(serializers.Serializer):
     class Meta:
         fields = '__all__'
 
+
+class AddcordinatesSerializer(serializers.Serializer):
+    latitude = serializers.CharField(required=True)
+    longitude = serializers.CharField(required=True)
+    userid = serializers.CharField(required=True)
+
+    class Meta:
+        fields = '__all__'
+

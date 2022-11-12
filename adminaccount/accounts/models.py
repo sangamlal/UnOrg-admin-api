@@ -11,7 +11,8 @@ class User(AbstractUser):
     
     mobile=models.CharField(_("Mobile") ,max_length=15)
     is_zoho_active=models.IntegerField(default=0)
-
+    latitude=models.CharField(max_length=200)
+    longitude=models.CharField(max_length=200)
     def __str__(self) :
         return self.username
 

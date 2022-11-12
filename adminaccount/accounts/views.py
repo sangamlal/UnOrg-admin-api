@@ -1385,3 +1385,53 @@ class DeleteSlot(APIView):
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AddCoordinatesUser(APIView):
+    permission_classes = [IsAuthenticated]
+    # Add warehouse cordinates Post Reuqest
+    def patch(self, request):
+        try:
+            serializer = AddcordinatesSerializer(data=request.data)
+            if serializer.is_valid():
+                usercordiantes = User.objects.filter(id=serializer.data.get(
+                        'userid', ''))
+                print("======22222",usercordiantes)
+                if usercordiantes:
+                    print("===========")
+                    usercordiantes.update(longitude=serializer.validated_data.get(
+                            'longitude', ''),latitude=serializer.validated_data.get(
+                            'latitude', ''),)
+                    print("=========get data==", usercordiantes)
+              
+                if usercordiantes:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'message': 'Coordinate updated'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'message': 'Coordinate not updated'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_200_OK)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
