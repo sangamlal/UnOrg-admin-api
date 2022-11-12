@@ -1420,12 +1420,12 @@ class AddCoordinatesUser(APIView):
             else:
                 print("I am api called-------")
                 json_data = {
-                    'status_code': 200,
+                    'status_code': 300,
                     'status': 'Failed',
                     'error': serializer.errors,
                     'remark': 'Serializer error'
                 }
-                return Response(json_data, status.HTTP_200_OK)
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
         except Exception as err:
             print("Error :", err)
             json_data = {
