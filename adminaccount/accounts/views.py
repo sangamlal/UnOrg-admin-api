@@ -1476,17 +1476,53 @@ class FetchInvoiceData(APIView):
                     'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
                         }
 
-                    response = requests.get("https://books.zoho.in/api/v3/invoices/1064041000000144003", headers=headers)
+                    response = requests.get("https://books.zoho.in/api/v3/invoices?date_start={}".format(currentdate), headers=headers)
                     if response.status_code == 200:
                         data1 = response.json()
-                        print("My Invoice date ",data1.get("invoices"))
-                        json_data = {
-                        'status_code': 200,
-                        'status': 'Success',
-                        'status': data1,
-                        'message': 'Coordinate updated'
-                        }
-                        return Response(json_data, status.HTTP_200_OK)
+                        invoices=data1.get("invoices")
+                        for invoice in invoices:
+                            response = requests.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
+                            print(".......",response.json())
+                            
+                            json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'status': data1,
+                            'data222222222': response.json().get("invoice").get("line_items"),
+                            'message': 'Coordinate updated'
+                            }
+                            for item in response.json().get("invoice").get("line_items"):
+
+                                getweight = iteminfo.objects.filter(zoho_item_id=item.get("item_id"))
+                                print("22222222222222222    ",getweight)
+                                if getweight:
+                                    print("---------111111111111 ",getweight)
+
+                                    getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"))
+                                    userobj = User.objects.get(id=serializer.data.get('userid', ''))
+                                    print("=================",getweightdata.item_waight)
+                                
+                                    vehicledata=orderinfo.objects.create(
+                                        userid=userobj,
+                                        shipping_address=invoice.get("shipping_address").get("address"),
+                                        invoice_id=invoice.get("invoice_id"),
+                                        customer_id=invoice.get("customer_id"),
+                                        weight=getweightdata.item_waight,
+                                        customer_name=invoice.get("customer_name"),
+                                        invoice_number=invoice.get("invoice_number"),
+                                        invoice_total=invoice.get("total"),
+                                        invoice_balance=invoice.get("balance"),
+                                        time_slot=invoice.get("cf_time_slots"),
+                                        contactno=invoice.get("shipping_address").get("phone"),
+                                        location_coordinates=invoice.get("cf_location_coordinate"),
+                                        is_deleted=0,
+                                        updated_at=datetime.now(),
+                                        created_date=datetime.now()
+                                    )
+                                    vehicledata.save()
+
+
+                            return Response(json_data, status.HTTP_200_OK)
                     
                     
                     print("=========get data==", usercordiantes)
@@ -1542,14 +1578,14 @@ class AddItemAPI(APIView):
                         'userid', ''))
                     print("===========",data.refreshtoken)
                     parameters = {
-                    "refresh_token":data.refreshtoken,
-                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
-                    "client_id":data.clientid,
-                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
-                    "client_secret":data.clientsecret,
-                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
-                    "redirect_uri":data.redirecturi,
-                    # "redirect_uri":'https://www.google.co.in',
+                    # "refresh_token":data.refreshtoken,
+                    "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    # "client_id":data.clientid,
+                    "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
+                    # "client_secret":data.clientsecret,
+                    "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    # "redirect_uri":data.redirecturi,
+                    "redirect_uri":'https://www.google.co.in',
                     "grant_type":"refresh_token",
                     }
 
