@@ -1848,3 +1848,79 @@ class EditItemInfo(APIView):
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class GetOrderbySlotDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetOrderbySlotDetailSerializer(data=request.data)
+            if serializer.is_valid():
+                userid = serializer.data.get('userid')
+                datacheck=User.objects.filter(id=userid)
+                #Check Data 
+                if datacheck:
+                    #Getting data of user
+                    # data = User.objects.get(id=userid)
+                    slotidid = serializer.data.get('slotid')
+                    data = slotinfo.objects.filter(id=slotidid)
+                    print("---------",data)
+                    if data:
+                        slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
+                        print("888888888 ",slotdata)
+                        if slotdata:
+                            slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
+                            orderdata = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
+                            print("888888888999999 ",orderdata)
+                            if orderdata:
+                                orderinfodata = orderinfo.objects.get(time_slot=slotinfodata.slottime)
+                                withoutquartorderinfodata = orderinfo.objects.get(time_slot=slotinfodata.slottime,location_coordinates='')
+                                print("88855jjjjjj     ",orderinfodata)
+                                print("888555555555555 ",withoutquartorderinfodata)
+                            # vehicledata={
+                            #     'iteminfoid':slotdata.id,
+                            #     'zoho_item_id':slotdata.zoho_item_id,
+                            #     'item_name':slotdata.item_name,
+                            #     'item_waight':slotdata.item_waight,
+                            #     'created_at':slotdata.created_at,
+                            #     'is_deleted':slotdata.is_deleted,
+                            #     'updated_at':slotdata.updated_at,
+                            #     'userid':slotdata.userid.id
+                            # }
+                            print("-----------",slotinfodata.slottime)
+                    
+                    
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'Item found'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'Item not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+

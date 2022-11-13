@@ -30,4 +30,5 @@ urlpatterns = [
     path('itemlist',views.ItemList_fun.as_view()),
     path('getitemdetail',views.GetItemDetail.as_view()),
     path('edititemInfo',views.EditItemInfo.as_view()),
+    path('getorderbyslotdetail',views.GetOrderbySlotDetail.as_view()),
 ]

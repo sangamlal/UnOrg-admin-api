@@ -163,3 +163,10 @@ class EditItemDetailSerializer(serializers.Serializer):
     item_waight = serializers.CharField(required=True)
     class Meta:
         fields = '__all__'
+
+class GetOrderbySlotDetailSerializer(serializers.Serializer):
+    userid = serializers.CharField(required=True)
+    slotid = serializers.CharField(required=True)
+    class Meta:
+        fields = '__all__'
+
