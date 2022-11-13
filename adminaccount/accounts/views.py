@@ -1499,27 +1499,30 @@ class FetchInvoiceData(APIView):
                                     print("---------111111111111 ",getweight)
 
                                     getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"))
-                                    userobj = User.objects.get(id=serializer.data.get('userid', ''))
-                                    print("=================",getweightdata.item_waight)
-                                
-                                    vehicledata=orderinfo.objects.create(
-                                        userid=userobj,
-                                        shipping_address=invoice.get("shipping_address").get("address"),
-                                        invoice_id=invoice.get("invoice_id"),
-                                        customer_id=invoice.get("customer_id"),
-                                        weight=getweightdata.item_waight,
-                                        customer_name=invoice.get("customer_name"),
-                                        invoice_number=invoice.get("invoice_number"),
-                                        invoice_total=invoice.get("total"),
-                                        invoice_balance=invoice.get("balance"),
-                                        time_slot=invoice.get("cf_time_slots"),
-                                        contactno=invoice.get("shipping_address").get("phone"),
-                                        location_coordinates=invoice.get("cf_location_coordinate"),
-                                        is_deleted=0,
-                                        updated_at=datetime.now(),
-                                        created_date=datetime.now()
-                                    )
-                                    vehicledata.save()
+                                    chekuserobj = User.objects.filter(id=serializer.data.get('userid', ''))
+                                    if chekuserobj:
+                                        userobj = User.objects.get(id=serializer.data.get('userid', ''))
+                                        print("=================",getweightdata.item_waight)
+                                        orderobj=orderinfo.filter(invoice_id=invoice.get('invoice_id',''))
+                                        if not orderobj:
+                                            vehicledata=orderinfo.objects.create(
+                                                userid=userobj,
+                                                shipping_address=invoice.get("shipping_address").get("address"),
+                                                invoice_id=invoice.get("invoice_id"),
+                                                customer_id=invoice.get("customer_id"),
+                                                weight=getweightdata.item_waight,
+                                                customer_name=invoice.get("customer_name"),
+                                                invoice_number=invoice.get("invoice_number"),
+                                                invoice_total=invoice.get("total"),
+                                                invoice_balance=invoice.get("balance"),
+                                                time_slot=invoice.get("cf_time_slots"),
+                                                contactno=invoice.get("shipping_address").get("phone"),
+                                                location_coordinates=invoice.get("cf_location_coordinate"),
+                                                is_deleted=0,
+                                                updated_at=datetime.now(),
+                                                created_date=datetime.now()
+                                            )
+                                            vehicledata.save()
 
 
                             return Response(json_data, status.HTTP_200_OK)
