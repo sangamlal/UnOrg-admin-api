@@ -1470,7 +1470,7 @@ class FetchInvoiceData(APIView):
                     accesstoken = data['access_token']
                     print("------",accesstoken)
                     currentdate=datetime.now().date()
-                    currentdate='2022-11-12'
+                    currentdate='2022-10-31'
                     headers = {
                     'Content-Type':'application/json',
                     'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
@@ -1481,16 +1481,11 @@ class FetchInvoiceData(APIView):
                         data1 = response.json()
                         invoices=data1.get("invoices")
                         for invoice in invoices:
+                            print("000000000000000000000000000000000000000000",invoice.get('invoice_id'))
                             response = requests.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
-                            print(".......",response.json())
+                            # print(".......",response.json())
                             
-                            json_data = {
-                            'status_code': 200,
-                            'status': 'Success',
-                            'status': data1,
-                            'data222222222': response.json().get("invoice").get("line_items"),
-                            'message': 'Coordinate updated'
-                            }
+                           
                             for item in response.json().get("invoice").get("line_items"):
 
                                 getweight = iteminfo.objects.filter(zoho_item_id=item.get("item_id"))
@@ -1504,7 +1499,9 @@ class FetchInvoiceData(APIView):
                                         userobj = User.objects.get(id=serializer.data.get('userid', ''))
                                         print("=================",getweightdata.item_waight)
                                         orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''))
+                                        print("###############        ",orderobj)
                                         if not orderobj:
+                                            print("------------------->>>>>>>>>>>>>>>>>>>>>>>>>")
                                             vehicledata=orderinfo.objects.create(
                                                 userid=userobj,
                                                 shipping_address=invoice.get("shipping_address").get("address"),
@@ -1520,12 +1517,18 @@ class FetchInvoiceData(APIView):
                                                 location_coordinates=invoice.get("cf_location_coordinate"),
                                                 is_deleted=0,
                                                 updated_at=datetime.now(),
-                                                created_date=datetime.now()
+                                                created_date=datetime.now()#this date change by zoho created_time
                                             )
                                             vehicledata.save()
 
-
-                            return Response(json_data, status.HTTP_200_OK)
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'status': data1,
+                            'data222222222': response.json().get("invoice").get("line_items"),
+                            'message': 'Coordinate updated'
+                            }
+                        return Response(json_data, status.HTTP_200_OK)
                     
                     
                     print("=========get data==", usercordiantes)
@@ -1866,6 +1869,7 @@ class GetOrderbySlotDetail(APIView):
                     data = slotinfo.objects.filter(id=slotidid)
                     print("---------",data)
                     if data:
+                        print("++++++++++++++++++++")
                         slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
                         print("888888888 ",slotdata)
                         if slotdata:
@@ -1888,6 +1892,14 @@ class GetOrderbySlotDetail(APIView):
                             'message': 'Item found'
                         }
                         return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'data': '',
+                            'message': 'Slot not found'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
                 else:
                     json_data = {
                         'status_code': 204,
@@ -1915,3 +1927,130 @@ class GetOrderbySlotDetail(APIView):
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+from .route_optimisation_capacity_weight import generate_optimised_way as gow
+from .route_optimisation_capacity_weight import optimisation
+from .distance_matrix import distance_matrix
+class RootOptimazationAPI(APIView):
+    permission_classes = [IsAuthenticated]
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetOrderbySlotDetailSerializer(data=request.data)
+            if serializer.is_valid():
+                userid = serializer.data.get('userid')
+                datacheck=User.objects.filter(id=userid)
+                #Check Data 
+                if datacheck:
+                    #Getting data of user
+                    # data = User.objects.get(id=userid)
+                    slotidid = serializer.data.get('slotid')
+                    data = slotinfo.objects.filter(id=slotidid)
+                    print("---------",data)
+                    if data:
+                        print("++++++++++++++++++++")
+                        slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
+                        print("888888888 ",slotdata)
+                        if slotdata:
+                            slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
+                            vehicledata = vehicleinfo.objects.filter(userid=userid,is_deleted=0)
+                            vehiclenamelist=[data.vehiclename for data in vehicledata]
+                            vehicleweightlist=[int(data.weightcapacity) for data in vehicledata]
+                            vehiclemaxorderlist=[int(data.maxorders) for data in vehicledata]
+                            print("77777777   ",vehiclenamelist)
+                            print("777777778   ",vehicleweightlist)
+                            print("777777779   ",vehiclemaxorderlist)
+                            vehicledatainfo=[]
+                            # print("55555555      ",slotinfodata.userid.longitude,slotinfodata.userid.latitude)
+                            print("55555555      ",vehicledata)
+                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
+                            order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates__isnull=False)#Add in condition ,created_date=datetime.now()
+                            # orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
+                            print("0000000000     ",order_with_coordinate)
+                            vehicledata={
+                                'totalorders':len(totalorders),
+                                'orderwithoutcoordinates':'',
+                                'orderwithcoordinats':'',
+                            }
+                            print("-----------",slotinfodata.slottime)
+                            final_data={'shipping_address':['none'],
+                            'invoice_id':['none'],
+                            'customer_id':['none'],
+                            'customer_name':['WareHouse'],
+                            'invoice_number':['none'],
+                            'invoice_total':[0],
+                            'invoice_balance':[0],
+                            'time_slot':['none'],
+                            'location_coordinates':[" ".join([slotinfodata.userid.longitude,slotinfodata.userid.latitude])],
+                            'weight':[0],
+                            'created_date':['none'],
+                            'contactno':['none']
+
+                                }
+                            for data in list(order_with_coordinate):
+                                final_data['shipping_address'].append(data.shipping_address), 
+                                final_data['invoice_id'].append(data.invoice_id),
+                                final_data['customer_id'].append(data.customer_id),
+                                final_data['customer_name'].append(data.customer_name), 
+                                final_data['invoice_number'].append(data.invoice_number), 
+                                final_data['invoice_total'].append(data.invoice_total), 
+                                final_data['invoice_balance'].append(data.invoice_balance), 
+                                final_data['time_slot'].append(data.time_slot), 
+                                final_data['location_coordinates'].append(data.location_coordinates), 
+                                final_data['weight'].append(data.weight), 
+                                final_data['created_date'].append(data.created_date), 
+                                final_data['contactno'].append(data.contactno), 
+                            print("kkkkkkk ",final_data)
+                            coords=final_data['location_coordinates']
+                            location_weights=final_data['weight']
+                            location_names=final_data['customer_name']
+                            print("77777777   ",vehiclenamelist)
+                            print("777777778   ",vehicleweightlist)
+                            print("777777779   ",vehiclemaxorderlist)
+                            vehicle_wt_capacities=vehicleweightlist
+                            vehicle_order_capcity=vehiclemaxorderlist
+                            vehicle_names=vehiclenamelist
+                            print('hfhfkvv')
+                            print(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,)
+                            # k=gow(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,  depot=0)
+                            print("hhhhhhhhhh    ",optimisation(distance_matrix(coords).euclidean_matrix_raw(),location_weights,vehicle_wt_capacities,vehicle_order_capcity,  depot=0))
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': vehicledata,
+                            'message': 'Item found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'data': '',
+                            'message': 'Slot not found'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'Item not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
