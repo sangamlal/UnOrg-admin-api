@@ -1503,7 +1503,7 @@ class FetchInvoiceData(APIView):
                                     if chekuserobj:
                                         userobj = User.objects.get(id=serializer.data.get('userid', ''))
                                         print("=================",getweightdata.item_waight)
-                                        orderobj=orderinfo.filter(invoice_id=invoice.get('invoice_id',''))
+                                        orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''))
                                         if not orderobj:
                                             vehicledata=orderinfo.objects.create(
                                                 userid=userobj,
