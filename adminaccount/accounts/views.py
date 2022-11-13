@@ -1870,33 +1870,24 @@ class GetOrderbySlotDetail(APIView):
                         print("888888888 ",slotdata)
                         if slotdata:
                             slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
-                            orderdata = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
-                            print("888888888999999 ",orderdata)
-                            if orderdata:
-                                orderinfodata = orderinfo.objects.get(time_slot=slotinfodata.slottime)
-                                withoutquartorderinfodata = orderinfo.objects.get(time_slot=slotinfodata.slottime,location_coordinates='')
-                                print("88855jjjjjj     ",orderinfodata)
-                                print("888555555555555 ",withoutquartorderinfodata)
-                            # vehicledata={
-                            #     'iteminfoid':slotdata.id,
-                            #     'zoho_item_id':slotdata.zoho_item_id,
-                            #     'item_name':slotdata.item_name,
-                            #     'item_waight':slotdata.item_waight,
-                            #     'created_at':slotdata.created_at,
-                            #     'is_deleted':slotdata.is_deleted,
-                            #     'updated_at':slotdata.updated_at,
-                            #     'userid':slotdata.userid.id
-                            # }
+                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
+                            orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates='')
+                            orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
+                            vehicledata={
+                                'totalorders':len(totalorders),
+                                'orderwithoutcoordinates':len(orderwithoutcoordinates),
+                                'orderwithcoordinats':orderwithcoordinats,
+                            }
                             print("-----------",slotinfodata.slottime)
                     
                     
-                    json_data = {
-                        'status_code': 200,
-                        'status': 'Success',
-                        'data': '',
-                        'message': 'Item found'
-                    }
-                    return Response(json_data, status.HTTP_200_OK)
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': vehicledata,
+                            'message': 'Item found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
                 else:
                     json_data = {
                         'status_code': 204,
