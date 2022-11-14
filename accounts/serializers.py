@@ -167,6 +167,12 @@ class EditItemDetailSerializer(serializers.Serializer):
 class GetOrderbySlotDetailSerializer(serializers.Serializer):
     userid = serializers.CharField(required=True)
     slotid = serializers.CharField(required=True)
+    # coordinate_type = serializers.CharField(required=True)
+    class Meta:
+        fields = '__all__'
+class GetOrderbyfororderListSlotDetailSerializer(serializers.Serializer):
+    userid = serializers.CharField(required=True)
+    slotid = serializers.CharField(required=True)
     coordinate_type = serializers.CharField(required=True)
     class Meta:
         fields = '__all__'

@@ -2185,7 +2185,7 @@ class GetOrderwithoutCoordinatesList(APIView):
     # Handling Post Reuqest
     def post(self, request):
         try:
-            serializer = GetOrderbySlotDetailSerializer(data=request.data)
+            serializer = GetOrderbyfororderListSlotDetailSerializer(data=request.data)
             if serializer.is_valid():
                 userid = serializer.data.get('userid')
                 datacheck=User.objects.filter(id=userid)
@@ -2206,7 +2206,7 @@ class GetOrderwithoutCoordinatesList(APIView):
                             # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
                             if coordinate_type=='with-coordinate':
                                 orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1)
-                            else:
+                            elif coordinate_type=='without-coordinate':
                                 orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0)
                             orderlist = [{"id": data.id, "shipping_address": data.shipping_address, 
                             "invoice_id": data.invoice_id, 
