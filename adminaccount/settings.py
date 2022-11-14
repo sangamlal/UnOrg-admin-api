@@ -58,6 +58,7 @@ ROOT_URLCONF = 'adminaccount.urls'
 
 #Cross Origin ByPass
 CORS_ALLOWED_ORIGINS = [
+    "online-thela.herokuapp.com"
     "https://example.com",
     "https://sub.example.com",
     "http://localhost:5173",
