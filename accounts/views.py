@@ -218,8 +218,8 @@ class UserLoginView(APIView):
                         "is_superuser": data.is_superuser,
                         "is_zoho_active": data.is_zoho_active,
                     }
-                    print("-----------------", newdata)
-                    print("-----------------", type(data))
+                    # print("-----------------", newdata)
+                    # print("-----------------", type(data))
                     token = get_tokens_for_user(user)
                     json_data = {
                         'status_code': 201,
@@ -324,7 +324,7 @@ class SendZohoRegistrationLink_fun(APIView):
                     return Response(json_data, status.HTTP_200_OK)
                 userid=User.objects.get(id=serializer.data.get('userid'))
                 userid=userid
-                print("---llll ",userid)
+                # print("---llll ",userid)
                 zohodata = zohoaccount.objects.create(
                     userid=userid,
                     clientid='',
@@ -474,12 +474,12 @@ class GetUserDetail_fun(APIView):
             # userdetail = [{"id": data.id, "username": data.username, "first_name": data.first_name, "mobile": data.mobile,
             #                "email": data.email, "first_name": data.first_name, "last_name": data.last_name} for data in userdata]
             datacheck=User.objects.filter(id=request.data.get("id") if request.data.get("id") else 0)
-            print("------",datacheck)
+            # print("------",datacheck)
             #Check Data 
             if datacheck:
                 #Getting data of user
                 data = User.objects.get(id=request.data.get("id") if request.data.get("id") else 0)
-                print("==========",data)
+                # print("==========",data)
                 newdata = {
                         "id": data.id,
                         "username": data.username,
@@ -545,7 +545,7 @@ class AddZohoCredential(APIView):
                             'refreshtoken', ''),
                         redirecturi=serializer.validated_data.get(
                             'redirecturi', ''),)
-                    print("=========get data==", datauser)
+                    # print("=========get data==", datauser)
                     # Email Send Process Start
                 
                     # clientid = serializer.validated_data.get('clientid', '')
@@ -1902,7 +1902,7 @@ class GetOrderbySlotDetail(APIView):
                         if slotdata:
                             slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
                             totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
-                            orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates='')
+                            orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates='',is_coordinate=0)
                             orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
                             vehicledata={
                                 'totalorders':len(totalorders),
@@ -1958,7 +1958,7 @@ from .route_optimisation_capacity_weight import generate_optimised_way as gow
 from .route_optimisation_capacity_weight import optimisation
 from .distance_matrix import distance_matrix
 class RootOptimazationAPI(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     # Handling Post Reuqest
     def post(self, request):
         try:
@@ -1972,33 +1972,24 @@ class RootOptimazationAPI(APIView):
                     # data = User.objects.get(id=userid)
                     slotidid = serializer.data.get('slotid')
                     data = slotinfo.objects.filter(id=slotidid)
-                    print("---------",data)
                     if data:
-                        print("++++++++++++++++++++")
                         slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
-                        print("888888888 ",slotdata)
                         if slotdata:
                             slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
                             vehicledata = vehicleinfo.objects.filter(userid=userid,is_deleted=0)
                             vehiclenamelist=[data.vehiclename for data in vehicledata]
                             vehicleweightlist=[int(data.weightcapacity) for data in vehicledata]
                             vehiclemaxorderlist=[int(data.maxorders) for data in vehicledata]
-                            print("77777777   ",vehiclenamelist)
-                            print("777777778   ",vehicleweightlist)
-                            print("777777779   ",vehiclemaxorderlist)
                             vehicledatainfo=[]
                             # print("55555555      ",slotinfodata.userid.longitude,slotinfodata.userid.latitude)
-                            print("55555555      ",vehicledata)
                             totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
                             order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates__isnull=False,is_coordinate=1)#Add in condition ,created_date=datetime.now()
                             # orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
-                            print("0000000000     ",order_with_coordinate)
                             vehicledata={
                                 'totalorders':len(totalorders),
                                 'orderwithoutcoordinates':'',
                                 'orderwithcoordinats':'',
                             }
-                            print("-----------",slotinfodata.slottime)
                             final_data={'shipping_address':['none'],
                             'invoice_id':['none'],
                             'customer_id':['none'],
@@ -2026,21 +2017,16 @@ class RootOptimazationAPI(APIView):
                                 final_data['weight'].append(data.weight), 
                                 final_data['created_date'].append(data.created_date), 
                                 final_data['contactno'].append(data.contactno), 
-                            print("kkkkkkk ",final_data)
                             coords=final_data['location_coordinates']
                             location_weights=final_data['weight']
                             location_names=final_data['customer_name']
-                            print("77777777   ",vehiclenamelist)
-                            print("777777778   ",vehicleweightlist)
-                            print("777777779   ",vehiclemaxorderlist)
                             vehicle_wt_capacities=vehicleweightlist
                             vehicle_order_capcity=vehiclemaxorderlist
                             vehicle_names=vehiclenamelist
                             due_amount=final_data['invoice_balance']
                             phone_number=final_data['contactno']
                             invoice_number=final_data['invoice_number']
-                            print('hfhfkvv')
-                            print(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,)
+                            # print(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,)
                             # k=gow(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,  depot=0)
 
                             data_locations =gow(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names, due_amount,phone_number,invoice_number, depot=0)
@@ -2058,17 +2044,6 @@ class RootOptimazationAPI(APIView):
                                     entry['data'].append(obj)
                                     # entry.append(obj)
                                 final_data.append(entry)
-                            print("111111111111111111111",final_data)
-                            print(data_locations)
-                            for obj in data_locations:
-                                print("kkkkkkkkkkkk   ",obj)
-                                # root_data={
-                                #     'Name':obj[0],
-                                #     'Contact':obj[2],
-                                #     'Coordinates':obj[3],
-                                #     'DueAmount':obj[1]
-                                # }
-                                # final_data.append(root_data)
                             json_data = {
                             'status_code': 200,
                             'status': 'Success',
@@ -2100,7 +2075,6 @@ class RootOptimazationAPI(APIView):
                     }
                     return Response(json_data, status.HTTP_204_NO_CONTENT)
             else:
-                print("I am api called-------")
                 json_data = {
                     'status_code': 300,
                     'status': 'Failed',
