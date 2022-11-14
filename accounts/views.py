@@ -733,7 +733,7 @@ class GetZohoCredential_cls(APIView):
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
+ 
 
 class SendRedirectUriEmail(APIView):
     # Handling Post Reuqest
@@ -2038,9 +2038,9 @@ class RootOptimazationAPI(APIView):
                                 for order in data_locations[key][0]:
                                     obj={}
                                     obj['customername']=order[0]
-                                    obj['Contact']=order[1]
-                                    obj['Coordinates']=order[2]
-                                    obj['DueAmount']=order[3]
+                                    obj['Contact']=order[2]
+                                    obj['Coordinates']=order[4]
+                                    obj['DueAmount']=order[1]
                                     entry['data'].append(obj)
                                     # entry.append(obj)
                                 final_data.append(entry)
@@ -2054,7 +2054,7 @@ class RootOptimazationAPI(APIView):
                         json_data = {
                             'status_code': 200,
                             'status': 'Success',
-                            'data': root_data,
+                            'data': final_data,
                             'message': 'Item found'
                         }
                         return Response(json_data, status.HTTP_200_OK)
@@ -2075,6 +2075,92 @@ class RootOptimazationAPI(APIView):
                     }
                     return Response(json_data, status.HTTP_204_NO_CONTENT)
             else:
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class GetOrderwithCoordinatesList(APIView):
+    permission_classes = [IsAuthenticated]
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetOrderbySlotDetailSerializer(data=request.data)
+            if serializer.is_valid():
+                userid = serializer.data.get('userid')
+                datacheck=User.objects.filter(id=userid)
+                #Check Data 
+                if datacheck:
+                    #Getting data of user
+                    # data = User.objects.get(id=userid)
+                    slotidid = serializer.data.get('slotid')
+                    data = slotinfo.objects.filter(id=slotidid)
+                    print("---------",data)
+                    if data:
+                        print("++++++++++++++++++++")
+                        slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
+                        print("888888888 ",slotdata)
+                        if slotdata:
+                            slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
+                            # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
+                            orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1)
+
+                            orderlist = [{"id": data.id, "shipping_address": data.shipping_address, 
+                            "invoice_id": data.invoice_id, 
+                            "customer_name": data.customer_name, 
+                            "invoice_number": data.invoice_number, 
+                            "invoice_total": data.invoice_total, 
+                            "invoice_balance": data.invoice_balance, 
+                            "time_slot": data.time_slot, 
+                            "contactno": data.contactno, 
+                            "location_coordinates": data.location_coordinates, 
+                            "is_coordinated": data.is_coordinate, 
+                            "is_deleted": data.is_deleted, 
+                            "updated_at": data.updated_at, 
+                                            "customer_id": data.customer_id, "weight": data.weight, 'userid': data.userid.id,'created_date': data.created_date} for data in orderwithoutcoordinates]
+                            # print("---------",vehiclelist)
+                           
+                    
+                    
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': orderlist,
+                            'message': 'Item found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'data': '',
+                            'message': 'Slot not found'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'Item not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
                 json_data = {
                     'status_code': 300,
                     'status': 'Failed',
