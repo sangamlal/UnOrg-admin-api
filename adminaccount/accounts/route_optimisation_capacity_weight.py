@@ -111,7 +111,7 @@ def optimisation(matrix,location_weights,vehicle_wt_capacities,vehicle_order_cap
     search_parameters.local_search_metaheuristic = (
         routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH)
     # search_parameters.time_limit.FromSeconds(1)
-    search_parameters.time_limit.seconds = 20
+    search_parameters.time_limit.seconds = 2
     # Solve the problem.
     solution = routing.SolveWithParameters(search_parameters)
 
@@ -124,19 +124,32 @@ def optimisation(matrix,location_weights,vehicle_wt_capacities,vehicle_order_cap
         return {}
 
 
-def generate_optimised_way(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,  depot=0):
+def generate_optimised_way(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,due_amount,phone_number,invoice_number,  depot=0):
     matrix=distance_matrix(coords).euclidean_matrix_raw()
     sol = optimisation(matrix,location_weights,vehicle_wt_capacities,vehicle_order_capcity,  depot=0)
+    # print(sol)
     if sol:
         
 
         names = location_names
         final_result = {}
         for key in sol[0].keys():
-            final_result[vehicle_names] = [names[i] for i in sol[0][key][0]]
-            final_result[vehicle_names] = [final_result[vehicle_names],
+            final_result[vehicle_names[key]] = [[names[i],due_amount[i],phone_number[i],invoice_number[i],coords[i]] for i in sol[0][key][0]]
+            final_result[vehicle_names[key]] = [final_result[vehicle_names[key]],
                                                    [sol[0][key][1], sol[0][key][2], sol[0][key][3]]]
         return final_result
     else:
         print('No Solution')
         return {}
+if __name__ == '__main__':
+    
+    # coordinate_data=pd.read_csv('test.csv')
+    coords=['83.8688 26.5846', '26.844785 81.009478', '26.844785 81.009478', '26.84735656 80.99673193', '26.84939007 81.05801672', '26.89309593 81.07272327', '26.87197829 80.99645969', '26.86110917 81.03994735', '26.85212501 81.04984738', '26.85182349 81.02205835', 'N 26°50\'46.8636"  E 80°57\'52.2252"',  'N 26°52\'35.3316"    E 80°59\'34.1376"', '26.87720028 80.97552001', '26.88881004 81.05653714', 'N 26°52\'34.2012"  E 80°59\'28.0968"', 'N 26°50\'52.5732" E 80°56\'22.3404"']
+    location_weights=[0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+    vehicle_wt_capacities=[30]
+    vehicle_order_capcity=[80]
+    vehicle_names=['DriverName123']
+    location_names= ['WareHouse',  '11 Spices Restaurant', 'Dilip Centre', 'Kedar Tiwari(Lavlai)', 'Ravi Yadav Batasa (Mp)', 'Shubham Chola Kulcha', 'Try D Taste Fast Food Eatery', 'Shubham Chhola Pudi', 'Purvanchal Matan Do Pyajaa', 'Karan Tiffin ', 'Diamond Boys Hostel', 'Tea Bar And Garden Restaurant', 'Agrawal Bhojanalay', 'Swaad Ek Parampara', 'V2 Cafe', 'Raj Hostels ']
+    k=generate_optimised_way(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,  depot=0)
+    print(k)
+    

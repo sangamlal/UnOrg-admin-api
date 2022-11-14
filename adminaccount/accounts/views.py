@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from ast import Try
 import imp
+from .distance_matrix import  coordinates_preprocesing
 import json
 from operator import truediv
 from select import select
@@ -14,6 +15,7 @@ from rest_framework.exceptions import APIException
 from datetime import datetime
 from django.core.mail import EmailMultiAlternatives
 from .serializers import *
+import re
 from rest_framework import generics
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User, zohoaccount,vehicleinfo,slotinfo
@@ -24,7 +26,28 @@ import requests
 import hashlib
 # Create your views here.
 
+def checkcoordinate(s):    
+    try:
+        # print(s," ", s.split(' '))
+        if len(s.split(' ')) == 2:
+            if [float(s.split(' ')[0]), float(s.split(' ')[1])]:
+                return True
+            return False
+        deg0, dec0 = s.split(' ')[1].split('°')
+        deg1, dec1 = s.split(' ')[-1].split('°')
 
+        deg0 = float(deg0)
+        deg1 = float(deg1)
+        minu0, seco0 = dec0.split("'")
+        minu1, seco1 = dec1.split("'")
+        seco0 = float(re.findall("\d+\.\d+", seco0)[0])
+        seco1 = float(re.findall("\d+\.\d+", seco1)[0])
+        n1 = float(deg0) + float(minu0) / 60 + float(seco0) / (60 * 60)
+        n2 = float(deg1) + float(minu1) / 60 + float(seco1) / (60 * 60)
+        return True
+    except Exception as e:
+        print(e)
+        return False
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
@@ -1462,64 +1485,68 @@ class FetchInvoiceData(APIView):
                     # "redirect_uri":data.clientsecret,
                     "redirect_uri":'https://www.google.co.in',
                     "grant_type":"refresh_token",
-                }
+                    }
  
-                response = requests.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
-                if response.status_code == 200:
-                    data =   response.json()
-                    accesstoken = data['access_token']
-                    print("------",accesstoken)
-                    currentdate=datetime.now().date()
-                    currentdate='2022-10-31'
-                    headers = {
-                    'Content-Type':'application/json',
-                    'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
-                        }
-
-                    response = requests.get("https://books.zoho.in/api/v3/invoices?date_start={}".format(currentdate), headers=headers)
+                    response = requests.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
                     if response.status_code == 200:
-                        data1 = response.json()
-                        invoices=data1.get("invoices")
-                        for invoice in invoices:
-                            print("000000000000000000000000000000000000000000",invoice.get('invoice_id'))
-                            response = requests.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
-                            # print(".......",response.json())
+                        data =   response.json()
+                        accesstoken = data['access_token']
+                        print("------",accesstoken)
+                        currentdate=datetime.now().date()
+                        currentdate='2022-10-31'
+                        headers = {
+                        'Content-Type':'application/json',
+                        'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
+                                }
+
+                        response = requests.get("https://books.zoho.in/api/v3/invoices?date_start={}".format(currentdate), headers=headers)
+                        if response.status_code == 200:
+                            data1 = response.json()
+                            invoices=data1.get("invoices")
+                            for invoice in invoices:
+                                print("000000000000000000000000000000000000000000",invoice.get('invoice_id'))
+                                response = requests.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
+                                # print(".......",response.json())
+                                
                             
-                           
-                            for item in response.json().get("invoice").get("line_items"):
+                                for item in response.json().get("invoice").get("line_items"):
 
-                                getweight = iteminfo.objects.filter(zoho_item_id=item.get("item_id"))
-                                print("22222222222222222    ",getweight)
-                                if getweight:
-                                    print("---------111111111111 ",getweight)
+                                    getweight = iteminfo.objects.filter(zoho_item_id=item.get("item_id"))
+                                    print("22222222222222222    ",getweight)
+                                    if getweight:
+                                        print("---------111111111111 ",getweight)
 
-                                    getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"))
-                                    chekuserobj = User.objects.filter(id=serializer.data.get('userid', ''))
-                                    if chekuserobj:
-                                        userobj = User.objects.get(id=serializer.data.get('userid', ''))
-                                        print("=================",getweightdata.item_waight)
-                                        orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''))
-                                        print("###############        ",orderobj)
-                                        if not orderobj:
-                                            print("------------------->>>>>>>>>>>>>>>>>>>>>>>>>")
-                                            vehicledata=orderinfo.objects.create(
-                                                userid=userobj,
-                                                shipping_address=invoice.get("shipping_address").get("address"),
-                                                invoice_id=invoice.get("invoice_id"),
-                                                customer_id=invoice.get("customer_id"),
-                                                weight=getweightdata.item_waight,
-                                                customer_name=invoice.get("customer_name"),
-                                                invoice_number=invoice.get("invoice_number"),
-                                                invoice_total=invoice.get("total"),
-                                                invoice_balance=invoice.get("balance"),
-                                                time_slot=invoice.get("cf_time_slots"),
-                                                contactno=invoice.get("shipping_address").get("phone"),
-                                                location_coordinates=invoice.get("cf_location_coordinate"),
-                                                is_deleted=0,
-                                                updated_at=datetime.now(),
-                                                created_date=datetime.now()#this date change by zoho created_time
-                                            )
-                                            vehicledata.save()
+                                        getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"))
+                                        chekuserobj = User.objects.filter(id=serializer.data.get('userid', ''))
+                                        if chekuserobj:
+                                            userobj = User.objects.get(id=serializer.data.get('userid', ''))
+                                            print("=================",getweightdata.item_waight)
+                                            orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''))
+                                            print("###############        ",orderobj)
+                                            if not orderobj:
+                                                print("------------------->>>>>>>>>>>>>>>>>>>>>>>>>")
+                                                bool_value=0
+                                                if checkcoordinate(s=invoice.get("cf_location_coordinate")):
+                                                    bool_value=1
+                                                vehicledata=orderinfo.objects.create(
+                                                    userid=userobj,
+                                                    shipping_address=invoice.get("shipping_address").get("address"),
+                                                    invoice_id=invoice.get("invoice_id"),
+                                                    customer_id=invoice.get("customer_id"),
+                                                    weight=getweightdata.item_waight,
+                                                    customer_name=invoice.get("customer_name"),
+                                                    invoice_number=invoice.get("invoice_number"),
+                                                    invoice_total=invoice.get("total"),
+                                                    invoice_balance=invoice.get("balance"),
+                                                    time_slot=invoice.get("cf_time_slots"),
+                                                    contactno=invoice.get("shipping_address").get("phone"),
+                                                    location_coordinates=invoice.get("cf_location_coordinate"),
+                                                    is_coordinate=bool_value,
+                                                    is_deleted=0,
+                                                    updated_at=datetime.now(),
+                                                    created_date=datetime.now()#this date change by zoho created_time
+                                                )
+                                                vehicledata.save()
 
                         json_data = {
                             'status_code': 200,
@@ -1931,7 +1958,7 @@ from .route_optimisation_capacity_weight import generate_optimised_way as gow
 from .route_optimisation_capacity_weight import optimisation
 from .distance_matrix import distance_matrix
 class RootOptimazationAPI(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     # Handling Post Reuqest
     def post(self, request):
         try:
@@ -1963,7 +1990,7 @@ class RootOptimazationAPI(APIView):
                             # print("55555555      ",slotinfodata.userid.longitude,slotinfodata.userid.latitude)
                             print("55555555      ",vehicledata)
                             totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
-                            order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates__isnull=False)#Add in condition ,created_date=datetime.now()
+                            order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates__isnull=False,is_coordinate=1)#Add in condition ,created_date=datetime.now()
                             # orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
                             print("0000000000     ",order_with_coordinate)
                             vehicledata={
@@ -1980,7 +2007,7 @@ class RootOptimazationAPI(APIView):
                             'invoice_total':[0],
                             'invoice_balance':[0],
                             'time_slot':['none'],
-                            'location_coordinates':[" ".join([slotinfodata.userid.longitude,slotinfodata.userid.latitude])],
+                            'location_coordinates':[" ".join([slotinfodata.userid.latitude,slotinfodata.userid.longitude])],
                             'weight':[0],
                             'created_date':['none'],
                             'contactno':['none']
@@ -2009,14 +2036,50 @@ class RootOptimazationAPI(APIView):
                             vehicle_wt_capacities=vehicleweightlist
                             vehicle_order_capcity=vehiclemaxorderlist
                             vehicle_names=vehiclenamelist
+                            due_amount=final_data['invoice_balance']
+                            phone_number=final_data['contactno']
+                            invoice_number=final_data['invoice_number']
                             print('hfhfkvv')
                             print(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,)
                             # k=gow(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,  depot=0)
-                            print("hhhhhhhhhh    ",optimisation(distance_matrix(coords).euclidean_matrix_raw(),location_weights,vehicle_wt_capacities,vehicle_order_capcity,  depot=0))
+
+                            data_locations =gow(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names, due_amount,phone_number,invoice_number, depot=0)
+                            final_data=[]
+                            for key in data_locations.keys():
+                                entry={}
+                                entry['vehicle_name']=key
+                                entry['data']=[]
+                                for order in data_locations[key][0]:
+                                    obj={}
+                                    obj['customername']=order[0]
+                                    obj['Contact']=order[1]
+                                    obj['Coordinates']=order[2]
+                                    obj['DueAmount']=order[3]
+                                    entry['data'].append(obj)
+                                    # entry.append(obj)
+                                final_data.append(entry)
+                            print("111111111111111111111",final_data)
+                            print(data_locations)
+                            for obj in data_locations:
+                                print("kkkkkkkkkkkk   ",obj)
+                                # root_data={
+                                #     'Name':obj[0],
+                                #     'Contact':obj[2],
+                                #     'Coordinates':obj[3],
+                                #     'DueAmount':obj[1]
+                                # }
+                                # final_data.append(root_data)
+                            json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': final_data,
+                            'message': 'Item found'
+                            }
+                            return Response(json_data, status.HTTP_200_OK)   
                         json_data = {
                             'status_code': 200,
                             'status': 'Success',
-                            'data': vehicledata,
+                            'data': root_data,
                             'message': 'Item found'
                         }
                         return Response(json_data, status.HTTP_200_OK)

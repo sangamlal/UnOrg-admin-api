@@ -67,7 +67,9 @@ class orderinfo(models.Model):
     invoice_balance=models.CharField(max_length=200)
     time_slot=models.CharField(max_length=200)
     contactno=models.CharField(max_length=200)
+
     location_coordinates=models.CharField(max_length=200)
+    is_coordinate=models.BooleanField(default=0)
     is_deleted=models.BooleanField(default=0)
     updated_at=models.DateTimeField(auto_now=True)
     created_date=models.DateTimeField(auto_now=True)
