@@ -1640,7 +1640,7 @@ class AddItemAPI(APIView):
                             # print(";;;;;;; ",data)
                             for d in data.get("items"):
                                 # check item id
-                                already=iteminfo.objects.filter(zoho_item_id=d.get('item_id', ''))
+                                already=iteminfo.objects.filter(zoho_item_id=d.get('item_id', ''),userid=serializer.data.get('userid'))
                                 userid=User.objects.get(id=serializer.data.get('userid'))
                                 if not already:
                                     zohodata = iteminfo.objects.create(
