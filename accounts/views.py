@@ -362,9 +362,9 @@ class SendZohoRegistrationLink_fun(APIView):
                                                         </a>
                                                         <br>
                                                         <strong>Open This URL To Enter Credentials</strong>
-                                                        https://onlinetheladev.online//add-credential?id="""+str(zohodata.id)+""""
+                                                        https://onlinetheladev.online/add-credential?id="""+str(zohodata.id)+""""
                                                         <strong>Redirect URL</strong>
-                                                        https://onlinetheladev.online//add-access
+                                                        https://onlinetheladev.online/add-access
                                                     </td>
                                                 </tr>
                                             </tbody>
