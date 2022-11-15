@@ -125,15 +125,11 @@ SIMPLE_JWT = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'dd6sqj1ev7ru31',
-        'USER':'qpxnebazubsarc',
-        'PASSWORD':'7b9fbcc75aef5444255b392151705454b67800247a8edbdba3292a2ba41c2578',
-        'HOST':'ec2-52-1-17-228.compute-1.amazonaws.com',
-        'PORT':'5432'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-# postgres://:@ec2-52-1-17-228.compute-1.amazonaws.com
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
