@@ -1597,7 +1597,7 @@ class FetchInvoiceData(APIView):
 
 
 class AddItemAPI(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     # Handling Post Reuqest
     def post(self, request):
         try:
