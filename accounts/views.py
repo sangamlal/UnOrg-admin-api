@@ -1462,7 +1462,7 @@ class AddCoordinatesUser(APIView):
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class FetchInvoiceData(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     # Add warehouse cordinates Post Reuqest
     def post(self, request):
         try:
@@ -1521,7 +1521,7 @@ class FetchInvoiceData(APIView):
                                         if chekuserobj:
                                             userobj = User.objects.get(id=serializer.data.get('userid', ''))
                                             print("=================",getweightdata.item_waight)
-                                            orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''))
+                                            orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
                                             print("###############        ",orderobj)
                                             if not orderobj:
                                                 print("------------------->>>>>>>>>>>>>>>>>>>>>>>>>")
