@@ -1470,11 +1470,9 @@ class FetchInvoiceData(APIView):
             if serializer.is_valid():
                 usercordiantes = zohoaccount.objects.filter(userid=serializer.data.get(
                         'userid', ''))
-                print("======22222",usercordiantes)
                 if usercordiantes:
                     data=zohoaccount.objects.get(userid=serializer.data.get(
                         'userid', ''))
-                    print("===========",data.refreshtoken)
                     parameters = {
                     # "refresh_token":data.refreshtoken,
                     "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
@@ -1491,7 +1489,6 @@ class FetchInvoiceData(APIView):
                     if response.status_code == 200:
                         data =   response.json()
                         accesstoken = data['access_token']
-                        print("------",accesstoken)
                         currentdate=datetime.now().date()
                         currentdate='2022-10-31'
                         headers = {
@@ -1504,7 +1501,6 @@ class FetchInvoiceData(APIView):
                             data1 = response.json()
                             invoices=data1.get("invoices")
                             for invoice in invoices:
-                                print("000000000000000000000000000000000000000000",invoice.get('invoice_id'))
                                 response = requests.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
                                 # print(".......",response.json())
                                 
@@ -1512,19 +1508,14 @@ class FetchInvoiceData(APIView):
                                 for item in response.json().get("invoice").get("line_items"):
 
                                     getweight = iteminfo.objects.filter(zoho_item_id=item.get("item_id"))
-                                    print("22222222222222222    ",getweight)
                                     if getweight:
-                                        print("---------111111111111 ",getweight)
 
                                         getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"))
                                         chekuserobj = User.objects.filter(id=serializer.data.get('userid', ''))
                                         if chekuserobj:
                                             userobj = User.objects.get(id=serializer.data.get('userid', ''))
-                                            print("=================",getweightdata.item_waight)
                                             orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
-                                            print("###############        ",orderobj)
                                             if not orderobj:
-                                                print("------------------->>>>>>>>>>>>>>>>>>>>>>>>>")
                                                 bool_value=0
                                                 if checkcoordinate(s=invoice.get("cf_location_coordinate")):
                                                     bool_value=1
@@ -1551,14 +1542,13 @@ class FetchInvoiceData(APIView):
                         json_data = {
                             'status_code': 200,
                             'status': 'Success',
-                            'status': data1,
-                            'data222222222': response.json().get("invoice").get("line_items"),
+                            # 'status': "s",
+                            'data222222222': "done data",
                             'message': 'Coordinate updated'
                             }
                         return Response(json_data, status.HTTP_200_OK)
                     
                     
-                    print("=========get data==", usercordiantes)
 
               
                 if usercordiantes:
