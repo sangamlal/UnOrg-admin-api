@@ -2016,7 +2016,7 @@ class RootOptimazationAPI(APIView):
                             due_amount=final_data['invoice_balance']
                             phone_number=final_data['contactno']
                             invoice_number=final_data['invoice_number']
-                            # print(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,)
+                            print(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,)
                             # k=gow(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,  depot=0)
 
                             data_locations =gow(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names, due_amount,phone_number,invoice_number, depot=0)
