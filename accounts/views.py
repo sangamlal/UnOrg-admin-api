@@ -1887,10 +1887,10 @@ class GetOrderbySlotDetail(APIView):
                     print("---------",data)
                     if data:
                         print("++++++++++++++++++++")
-                        slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
+                        slotdata = slotinfo.objects.filter(id=slotidid)#userid=userid
                         print("888888888 ",slotdata)
                         if slotdata:
-                            slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
+                            slotinfodata = slotinfo.objects.get(id=slotidid)#userid=userid
                             totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
                             orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates='',is_coordinate=0)
                             orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
