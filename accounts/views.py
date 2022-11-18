@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from ast import Try
 import imp
-from .distance_matrix import  coordinates_preprocesing
+# from .distance_matrix import  coordinates_preprocesing
 import json
 from operator import truediv
 from select import select
@@ -163,37 +163,37 @@ class SignupUser(APIView):
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request):
-        try:
-            # print("iiiiiiiii ",request.id)
-            deletestatus, userinfo = User.objects.filter(
-                id=request.data.get('id')).delete()
-            # print(deletestatus,"--------------",userinfo)
-            if deletestatus:
-                json_data = {
-                    'status_code': 205,
-                    'status': 'Success',
-                    'message': 'User deleted successfully'
-                }
-                return Response(json_data, status.HTTP_205_RESET_CONTENT)
-            else:
-                # print("================")
-                json_data = {
-                    'status_code': 204,
-                    'status': 'Success',
-                    'message': 'User not found'
-                }
-                return Response(json_data, status.HTTP_204_NO_CONTENT)
+    # def delete(self, request):
+    #     try:
+    #         # print("iiiiiiiii ",request.id)
+    #         deletestatus, userinfo = User.objects.filter(
+    #             id=request.data.get('id')).delete()
+    #         # print(deletestatus,"--------------",userinfo)
+    #         if deletestatus:
+    #             json_data = {
+    #                 'status_code': 205,
+    #                 'status': 'Success',
+    #                 'message': 'User deleted successfully'
+    #             }
+    #             return Response(json_data, status.HTTP_205_RESET_CONTENT)
+    #         else:
+    #             # print("================")
+    #             json_data = {
+    #                 'status_code': 204,
+    #                 'status': 'Success',
+    #                 'message': 'User not found'
+    #             }
+    #             return Response(json_data, status.HTTP_204_NO_CONTENT)
 
-        except Exception as err:
-            print("Error :", err)
-            json_data = {
-                'status_code': 500,
-                'status': 'Failed',
-                'error': err,
-                'remark': 'Landed in exception',
-            }
-            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+    #     except Exception as err:
+    #         print("Error :", err)
+    #         json_data = {
+    #             'status_code': 500,
+    #             'status': 'Failed',
+    #             'error': err,
+    #             'remark': 'Landed in exception',
+    #         }
+    #         return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserLoginView(APIView):
@@ -2223,19 +2223,16 @@ class VehicleLogin(APIView):
                         'status_code': 200,
                         'status': 'Success',
                         'data': vehicledata,
-                        'refresh': str(token.get("refresh")),
-                        'access': str(token.get("access")),
                         'message': 'Vehicle created'
                     }
                     return Response(json_data, status.HTTP_200_OK)
                 except Exception as e:
                     print(e)
-                    result=[]
                     data={}
-                    data['status_code']=404
+                    data['status']= "Failed"
+                    data['status_code']=500
                     data['message']=f'{e}'
-                    result.append(data)
-                    return Response(result,status=404)
+                    return Response(data,status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
                 print("I am api called-------")
                 json_data = {
@@ -2255,3 +2252,45 @@ class VehicleLogin(APIView):
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class orders_delivery(APIView):
+    
+    def patch(self, request):
+        try:
+            serializer_data  = orders_delivery_serializers(data=request.data)
+            status='success'
+            status_code=200
+            message = "data updated successfully"
+            if serializer_data.is_valid():
+                vehicle_id = serializer_data.data.get('vehicle_id')
+                order_id = serializer_data.data.get('order_id')
+                vehicle_obj = vehicleinfo.objects.get(vehicleinfoid=vehicle_id)
+                order_obj =  orderinfo.objects.get(orderinfoid = order_id)
+                ordersdelivery_id = serializer_data.data.get('id')
+                ordersdelivery_id = ordersdelivery.objects.get(id = 'ordersdelivery_id')
+                if vehicle_obj and order_obj and ordersdelivery_id:
+                    serializer_data.save()
+                else:
+                    status_code=404
+                    status="Fail"
+                    message = "data Not updated"
+            else:
+                    status_code=300
+                    status="Fail"
+                    message = "data is Not valid"
+            json_data = {
+                'status_code': status_code,
+                'status': status,
+                'messgae': message,
+                }
+            return Response(json_data, status  = status_code)    
+        
+        
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
