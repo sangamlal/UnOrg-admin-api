@@ -84,7 +84,7 @@ class ordersdelivery(models.Model):
     email =models.CharField(max_length=30,null=True,blank=True)
     latitude = models.CharField(max_length=30,null=True,blank=True)
     longitude = models.CharField(max_length=30,null=True,blank=True)
-    weight = models.FloatField()
+    weight = models.FloatField(default=0)
     location = models.CharField(max_length=50,null=True,blank=True)
     collectedAmount = models.FloatField(default=0) 
     orderValue = models.CharField(max_length=50,null=True,blank=True)

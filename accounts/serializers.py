@@ -177,3 +177,9 @@ class GetOrderbyfororderListSlotDetailSerializer(serializers.Serializer):
     class Meta:
         fields = '__all__'
 
+
+class orders_delivery_serializers(serializers.ModelSerializer):
+    id = serializers.CharField(required=True)
+    class Meta:
+        model = ordersdelivery
+        fields = ['id','order_id' ,'vehicle_id','collectedAmount','status','upi','cash','other','reason'] 

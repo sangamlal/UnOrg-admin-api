@@ -34,4 +34,5 @@ urlpatterns = [
     path('rootoptimazation',views.RootOptimazationAPI.as_view()),
     path('getorderwithcoordinateslist',views.GetOrderwithCoordinatesList.as_view()),
     path('getorderwithoutcoordinateslist',views.GetOrderwithoutCoordinatesList.as_view()),
+    path('orders_delivery',views.orders_delivery.as_view()),
 ]

@@ -2261,14 +2261,24 @@ class orders_delivery(APIView):
             status_code=200
             message = "data updated successfully"
             if serializer_data.is_valid():
+                print(serializer_data.data)
                 vehicle_id = serializer_data.data.get('vehicle_id')
                 order_id = serializer_data.data.get('order_id')
-                vehicle_obj = vehicleinfo.objects.get(vehicleinfoid=vehicle_id)
-                order_obj =  orderinfo.objects.get(orderinfoid = order_id)
+                vehicle_obj = vehicleinfo.objects.get(id=vehicle_id)
+                order_obj =  orderinfo.objects.get(id = order_id)
                 ordersdelivery_id = serializer_data.data.get('id')
-                ordersdelivery_id = ordersdelivery.objects.get(id = 'ordersdelivery_id')
-                if vehicle_obj and order_obj and ordersdelivery_id:
-                    serializer_data.save()
+                ordersdelivery_obj = ordersdelivery.objects.filter(id = ordersdelivery_id)
+                if vehicle_obj and order_obj and ordersdelivery_obj:
+                    ordersdelivery_obj.update(
+                        order_id=order_obj, 
+                        vehicle_id=vehicle_obj,
+                        collectedAmount=serializer_data.validated_data.get('collectedAmount', ''),
+                        status=serializer_data.validated_data.get('status', ''),
+                        upi=serializer_data.validated_data.get('upi', ''),
+                        cash=serializer_data.validated_data.get('cash', ''),
+                        other=serializer_data.validated_data.get('other', ''),
+                        reason=serializer_data.validated_data.get('reason', ''), 
+                    )
                 else:
                     status_code=404
                     status="Fail"
