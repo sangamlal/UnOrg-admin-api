@@ -98,3 +98,29 @@ class ordersdelivery(models.Model):
     is_deleted = models.BooleanField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
     created_date = models.DateTimeField(auto_now=True)
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .helper import get_model_fields
+        self.output_fields = get_model_fields(ordersdelivery)
+    
+    def convert_to_output_format(self,qs_json):
+        meta_fields = ordersdelivery._meta.get_fields()
+        fields = [f.name for f in meta_fields]
+        primary_key_name = ordersdelivery._meta.pk.name
+
+        final_result = []
+
+        for item in qs_json:
+            entity_details = {}
+            if item.get('fields') is None:
+                continue
+            for f in fields:
+                entity_details[f] = item['fields'].get(f)
+            entity_details[primary_key_name] = item.get('pk')
+            for f in item.keys():
+                if f == 'fields':
+                    continue
+                entity_details[f] = item.get(f)
+            final_result.append(entity_details)
+        return final_result

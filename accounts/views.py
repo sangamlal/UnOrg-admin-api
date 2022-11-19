@@ -16,14 +16,12 @@ from datetime import datetime
 from django.core.mail import EmailMultiAlternatives
 from .serializers import *
 import re
-from rest_framework import generics
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User, zohoaccount,vehicleinfo,slotinfo
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
-from django.core import serializers
 import requests
-import hashlib
+from .helper import get_model_fields,filter_dict_keys
 # Create your views here.
 
 def checkcoordinate(s):    
@@ -2259,30 +2257,27 @@ class orders_delivery(APIView):
             serializer_data  = orders_delivery_serializers(data=request.data)
             status='success'
             status_code=200
+            result={}
             message = "data updated successfully"
             if serializer_data.is_valid():
-                print(serializer_data.data)
-                vehicle_id = serializer_data.data.get('vehicle_id')
-                order_id = serializer_data.data.get('order_id')
-                vehicle_obj = vehicleinfo.objects.get(id=vehicle_id)
-                order_obj =  orderinfo.objects.get(id = order_id)
-                ordersdelivery_id = serializer_data.data.get('id')
-                ordersdelivery_obj = ordersdelivery.objects.filter(id = ordersdelivery_id)
-                if vehicle_obj and order_obj and ordersdelivery_obj:
-                    ordersdelivery_obj.update(
-                        order_id=order_obj, 
-                        vehicle_id=vehicle_obj,
-                        collectedAmount=serializer_data.validated_data.get('collectedAmount', ''),
-                        status=serializer_data.validated_data.get('status', ''),
-                        upi=serializer_data.validated_data.get('upi', ''),
-                        cash=serializer_data.validated_data.get('cash', ''),
-                        other=serializer_data.validated_data.get('other', ''),
-                        reason=serializer_data.validated_data.get('reason', ''), 
+                payload = serializer_data.validated_data
+                from .models import ordersdelivery as OrderDelivery
+                ordersdelivery = OrderDelivery()
+                update_data = filter_dict_keys(payload,ordersdelivery.output_fields)
+                id = serializer_data.validated_data.get('id')
+                ordersdelivery_obj = OrderDelivery.objects.get(id=id)
+                if ordersdelivery_obj:
+                    obj, is_created = OrderDelivery.objects.update_or_create(
+                        id=id,
+                        defaults=update_data
                     )
+                    from django.forms.models import model_to_dict
+                    data  = model_to_dict(obj)
+                    result=data
                 else:
-                    status_code=404
                     status="Fail"
-                    message = "data Not updated"
+                    status_code=500
+                    message = "object don't exist"
             else:
                     status_code=300
                     status="Fail"
@@ -2291,6 +2286,7 @@ class orders_delivery(APIView):
                 'status_code': status_code,
                 'status': status,
                 'messgae': message,
+                'result':result
                 }
             return Response(json_data, status  = status_code)    
         
