@@ -1405,6 +1405,7 @@ class FetchInvoiceData(APIView):
     # Add warehouse cordinates Post Reuqest
     def post(self, request):
         try:
+            req = requests.Session()
             serializer = GetSlotListSerializer(data=request.data)
             if serializer.is_valid():
                 usercordiantes = zohoaccount.objects.filter(userid=serializer.data.get(
@@ -1424,7 +1425,7 @@ class FetchInvoiceData(APIView):
                     "grant_type":"refresh_token",
                     }
  
-                    response = requests.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
+                    response = req.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
                     if response.status_code == 200:
                         data =   response.json()
                         accesstoken = data['access_token']
@@ -1435,12 +1436,12 @@ class FetchInvoiceData(APIView):
                         'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
                                 }
 
-                        response = requests.get("https://books.zoho.in/api/v3/invoices?date_start={}".format(currentdate), headers=headers)
+                        response = req.get("https://books.zoho.in/api/v3/invoices?date_start={}".format(currentdate), headers=headers)
                         if response.status_code == 200:
                             data1 = response.json()
                             invoices=data1.get("invoices")
                             for invoice in invoices:
-                                response = requests.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
+                                response = req.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
                                 # print(".......",response.json())
                                 
                             
