@@ -182,3 +182,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 AUTH_USER_MODEL = "accounts.User"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://default:Y1uW1yFMbQfhLhP0ccPy2ORGU8lTxrHx@redis-10666.c80.us-east-1-2.ec2.cloud.redislabs.com:10666",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+    }
+}

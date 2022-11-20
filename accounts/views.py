@@ -24,6 +24,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.core import serializers
 import requests
 import hashlib
+from django.core.cache import cache
 # Create your views here.
 
 def checkcoordinate(s):    
@@ -1435,13 +1436,30 @@ class FetchInvoiceData(APIView):
                         'Content-Type':'application/json',
                         'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
                                 }
-                        response = req.get("https://books.zoho.in/api/v3/invoices?date_start={}".format(currentdate), headers=headers)
-                        if response.status_code == 200:
-                            data1 = response.json()
+                        response = cache.get("Date_start={}".format(currentdate))
+                        comming_from_redis=True
+                        if response==None:
+                            comming_from_redis=False
+                            response = req.get("https://books.zoho.in/api/v3/invoices?date_start={}".format(currentdate), headers=headers)
+                            cache.set("Date_start={}".format(currentdate),response.json(),timeout=300000)
+                        if comming_from_redis==True or response.status_code == 200 :
+                            if  comming_from_redis==False:
+                                data1 = response.json()
+                            else:
+                                data1=response
                             invoices=data1.get("invoices")
                             for invoice in invoices:
-                                response = req.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
-                                for item in response.json().get("invoice").get("line_items"):
+                                response = cache.get("invoices/{}".format(invoice.get('invoice_id')))
+                                invoice_data_from_redis = True
+                                if response==None:
+                                    invoice_data_from_redis=False
+                                    response = req.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
+                                    cache.set("invoices/{}".format(invoice.get('invoice_id')),response.json(),timeout=300000)
+                                if invoice_data_from_redis==False:
+                                    data_obj = response.json()
+                                else:
+                                    data_obj=response
+                                for item in data_obj.get("invoice").get("line_items"):
                                     getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"))
                                     if userobj:
                                         orderobj=orderinfo.objects.get(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
