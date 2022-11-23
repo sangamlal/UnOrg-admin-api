@@ -2134,9 +2134,9 @@ class GetOrderwithoutCoordinatesList(APIView):
                             slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
                             # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
                             if coordinate_type=='with-coordinate':
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1)
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'))
                             elif coordinate_type=='without-coordinate':
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0)
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=serializer.data.get('userid'))
                             orderlist = [{"id": data.id, "shipping_address": data.shipping_address, 
                             "invoice_id": data.invoice_id, 
                             "customer_name": data.customer_name, 
