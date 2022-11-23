@@ -183,3 +183,17 @@ class orders_delivery_serializers(serializers.ModelSerializer):
     class Meta:
         model = ordersdelivery
         fields = ['id','order_id' ,'vehicle_id','collectedAmount','status','upi','cash','other','reason'] 
+
+class GetOrderDetailSerializer(serializers.Serializer):
+    vehicleid = serializers.CharField(required=True)
+    ordersdeliveryid = serializers.CharField(required=True)
+    class Meta:
+        fields = '_all_'
+
+class GetOrderListSerializer(serializers.Serializer):
+    vehicleid = serializers.CharField(required=True)
+    class Meta:
+        fields = '_all_'
+
+
+

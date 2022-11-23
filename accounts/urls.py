@@ -35,4 +35,6 @@ urlpatterns = [
     path('getorderwithcoordinateslist',views.GetOrderwithCoordinatesList.as_view()),
     path('getorderwithoutcoordinateslist',views.GetOrderwithoutCoordinatesList.as_view()),
     path('orders_delivery',views.orders_delivery.as_view()),
+    path('getapporderdetail',views.GetAppOrderDetail.as_view()),
+    path('getapporderlist',views.GetAppOrderList_f.as_view()),
 ]

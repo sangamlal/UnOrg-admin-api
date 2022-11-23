@@ -1403,6 +1403,7 @@ class FetchInvoiceData(APIView):
     # Add warehouse cordinates Post Reuqest
     def post(self, request):
         try:
+            req = requests.Session()
             serializer = GetSlotListSerializer(data=request.data)
             if serializer.is_valid():
                 usercordiantes = zohoaccount.objects.filter(userid=serializer.data.get(
@@ -1422,7 +1423,7 @@ class FetchInvoiceData(APIView):
                     "grant_type":"refresh_token",
                     }
  
-                    response = requests.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
+                    response = req.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
                     if response.status_code == 200:
                         data =   response.json()
                         accesstoken = data['access_token']
@@ -1433,12 +1434,12 @@ class FetchInvoiceData(APIView):
                         'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
                                 }
 
-                        response = requests.get("https://books.zoho.in/api/v3/invoices?date_start={}".format(currentdate), headers=headers)
+                        response = req.get("https://books.zoho.in/api/v3/invoices?date_start={}".format(currentdate), headers=headers)
                         if response.status_code == 200:
                             data1 = response.json()
                             invoices=data1.get("invoices")
                             for invoice in invoices:
-                                response = requests.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
+                                response = req.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
                                 # print(".......",response.json())
                                 
                             
@@ -1567,7 +1568,7 @@ class AddItemAPI(APIView):
                             # print(";;;;;;; ",data)
                             for d in data.get("items"):
                                 # check item id
-                                already=iteminfo.objects.filter(zoho_item_id=d.get('item_id', ''),userid=serializer.data.get('userid'))
+                                already=iteminfo.objects.filter(zoho_item_id=d.get('item_id', ''))
                                 userid=User.objects.get(id=serializer.data.get('userid'))
                                 if not already:
                                     zohodata = iteminfo.objects.create(
@@ -1643,8 +1644,7 @@ class ItemList_fun(APIView):
                         'userid', ''))
                 if vehicledata:
 
-                    vehicleobj = iteminfo.objects.filter(is_deleted=0,userid=serializer.data.get(
-                        'userid', '')).order_by('item_waight')
+                    vehicleobj = iteminfo.objects.filter(is_deleted=0).order_by('item_waight')
                     # print("=============",vehicleobj)
                     
                     vehiclelist = [{"id": data.id, "zoho_item_id": data.zoho_item_id, 
@@ -2297,6 +2297,145 @@ class orders_delivery(APIView):
                 'status_code': 500,
                 'status': 'Failed',
                 'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetAppOrderDetail(APIView):
+    # permission_classes = [IsAuthenticated]
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetOrderDetailSerializer(data=request.data)
+            if serializer.is_valid():
+                ordersdelivery_id = serializer.data.get('ordersdeliveryid')
+                vehicle_id = serializer.data.get('vehicleid')
+                data = ordersdelivery.objects.filter(id=ordersdelivery_id,vehicle_id=vehicle_id)
+                print("---------",data)
+                if data:
+                    orderdata = ordersdelivery.objects.get(id=ordersdelivery_id,vehicle_id=vehicle_id)
+                    vehicledata={
+                        'ordersdeliveryid':orderdata.id,
+                        'order_id':orderdata.order_id.id,
+                        'vechicle_id':orderdata.vehicle_id.id,
+                        'time_slot':orderdata.time_slot,
+                        'user_id' :orderdata.user_id.id,
+                        'customer_name':orderdata.customer_name,
+                        'phone_number':orderdata.phone_number,
+                        'email' :orderdata.email,
+                        'latitude':orderdata.latitude,
+                        'longitude':orderdata.longitude,
+                        'weight' :orderdata.weight,
+                        'location':orderdata.location,
+                        'collectedAmount':orderdata.collectedAmount,
+                        'orderValue':orderdata.orderValue, 
+                        'invoiceNo' :orderdata.invoiceNo,
+                        'invoiceID':orderdata.invoiceID,
+                        'status' :orderdata.status,
+                        'upi' :orderdata.upi,
+                        'cash':orderdata.cash,
+                        'other':orderdata.other,
+                        'reason':orderdata.reason,
+                        'totalamount':orderdata.upi+orderdata.cash+orderdata.other,
+                    }
+                    
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': vehicledata,
+                        'message': 'Vehicle found'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'Vehicle not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': "{}".format(err),
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetAppOrderList_f(APIView):
+    # permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = GetOrderListSerializer(data=request.data)
+            if serializer.is_valid():
+                print("--------------",serializer.data.get('userid', ''))
+                vehicledata = vehicleinfo.objects.filter(id=serializer.data.get(
+                        'vehicleid', ''))
+                if vehicledata:
+
+                    vehicleobj = ordersdelivery.objects.filter(is_deleted=0,vehicle_id=serializer.data.get(
+                        'vehicleid', ''))
+                    total_collected_amount=0.0
+                    
+                    vehicleorderlist = [{"ordersdeliveryid":data.id,"order_id": data.order_id.id, "vehicle_id": data.vehicle_id.id, "time_slot": data.time_slot, 'user_id': data.user_id.id,
+                                    "customer_name": data.customer_name, "phone_number": data.phone_number, 'email': data.email, 'latitude':data.latitude, 'longitude': data.longitude,
+                                     'weight': data.weight, 'location': data.location ,'collectedAmount': data.collectedAmount,'orderValue': data.orderValue ,'invoiceNo': data.invoiceNo ,'invoiceID': data.invoiceID , 'status': data.status ,'upi': data.upi ,'cash': data.cash,'other': data.other ,'reason': data.reason,'totalamount':data.upi+data.cash+data.other}  for data in vehicleobj]
+                    
+                    print("---------")
+                    if vehicleorderlist :
+                        total_collected_amount =vehicleorderlist[0].get('totalamount')
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': vehicleorderlist,
+                            'total_collected_amount': total_collected_amount,
+                            'message': 'Order found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        print("================")
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'message': 'Order not found'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f"{err}",
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
