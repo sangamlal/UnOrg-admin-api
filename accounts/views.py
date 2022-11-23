@@ -362,9 +362,9 @@ class SendZohoRegistrationLink_fun(APIView):
                                                         </a>
                                                         <br>
                                                         <strong>Open This URL To Enter Credentials</strong>
-                                                        https://onlinetheladev.online/add-credential?id="""+str(zohodata.id)+""""
+                                                       https://www.onlinethela.online/add-credential?id="""+str(zohodata.id)+""""
                                                         <strong>Redirect URL</strong>
-                                                        https://onlinetheladev.online/add-access
+                                                       https://www.onlinethela.online/add-access
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -1411,8 +1411,8 @@ class FetchInvoiceData(APIView):
                 usercordiantes = zohoaccount.objects.filter(userid=serializer.data.get(
                         'userid', ''))
                 if usercordiantes:
-                    data=zohoaccount.objects.get(userid=serializer.data.get(
-                        'userid', ''))
+                    # data=zohoaccount.objects.get(userid=serializer.data.get(
+                    #     'userid', ''))
                     parameters = {
                     # "refresh_token":data.refreshtoken,
                     "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
