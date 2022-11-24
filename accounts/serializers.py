@@ -196,4 +196,7 @@ class GetOrderListSerializer(serializers.Serializer):
         fields = '_all_'
 
 
-
+class create_orders_delivery_serializers(serializers.ModelSerializer):
+    class Meta:
+        model = ordersdelivery
+        fields = ['order_id','vehicle_id','invoiceID','user_id']

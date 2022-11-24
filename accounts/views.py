@@ -2252,6 +2252,62 @@ class VehicleLogin(APIView):
 
 class orders_delivery(APIView):
     
+
+    def post(self,request):
+        try:
+            serializer_data  = create_orders_delivery_serializers(data=request.data)
+            status_messgae = 'created'
+            status_code = 200
+            message = 'data created successfully'
+            if serializer_data.is_valid():
+                print(serializer_data.data)
+                try:
+                    or_id=serializer_data.data.get('order_id')
+                    inid=serializer_data.data.get('invoiceID')
+                    order_data = orderinfo.objects.get(id= or_id,invoice_id= inid)
+                    vehicle_obj = vehicleinfo.objects.get(id= serializer_data.data.get('vehicle_id'))
+                    from .models import ordersdelivery as OrderDelivery
+                    ordersdelivery = OrderDelivery()
+                    from django.forms.models import model_to_dict
+                    payload  = model_to_dict(order_data)
+                    update_data = filter_dict_keys(payload,ordersdelivery.output_fields)
+                    update_data['vehicle_id']=vehicle_obj
+                    update_data['order_id']=order_data
+                    update_data['user_id']=User.objects.get(id=serializer_data.data.get('user_id'))
+                    print(update_data)
+                    obj, is_created = OrderDelivery.objects.update_or_create(
+                        id=4,
+                        defaults=update_data
+                    )
+                    if is_created:
+                        print('data is created')
+                    data  = model_to_dict(obj)
+                    result=data
+                    json_data = {
+                        'status_code': status_code,
+                        'status': status_messgae,
+                        'messgae': message,
+                        'result':result
+                    }
+                    return Response(json_data, status  = status_code)   
+                except Exception as e:
+                    print("Error :", e)
+                    json_data = {
+                        'status_code': 500,
+                        'status': 'Failed',
+                        'error': f'{e}',
+                        'remark': 'Landed in exception',
+                        }
+                return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            print("Error :", e)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{e}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
     def patch(self, request):
         try:
             serializer_data  = orders_delivery_serializers(data=request.data)
