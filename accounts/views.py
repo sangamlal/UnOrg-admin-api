@@ -24,6 +24,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.core import serializers
 import requests
 import hashlib
+import ast
+from django.utils import timezone
 # Create your views here.
 
 def checkcoordinate(s):    
@@ -163,37 +165,37 @@ class SignupUser(APIView):
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # def delete(self, request):
-    #     try:
-    #         # print("iiiiiiiii ",request.id)
-    #         deletestatus, userinfo = User.objects.filter(
-    #             id=request.data.get('id')).delete()
-    #         # print(deletestatus,"--------------",userinfo)
-    #         if deletestatus:
-    #             json_data = {
-    #                 'status_code': 205,
-    #                 'status': 'Success',
-    #                 'message': 'User deleted successfully'
-    #             }
-    #             return Response(json_data, status.HTTP_205_RESET_CONTENT)
-    #         else:
-    #             # print("================")
-    #             json_data = {
-    #                 'status_code': 204,
-    #                 'status': 'Success',
-    #                 'message': 'User not found'
-    #             }
-    #             return Response(json_data, status.HTTP_204_NO_CONTENT)
+    def delete(self, request):
+        try:
+            # print("iiiiiiiii ",request.id)
+            deletestatus, userinfo = User.objects.filter(
+                id=request.data.get('id')).delete()
+            # print(deletestatus,"--------------",userinfo)
+            if deletestatus:
+                json_data = {
+                    'status_code': 205,
+                    'status': 'Success',
+                    'message': 'User deleted successfully'
+                }
+                return Response(json_data, status.HTTP_205_RESET_CONTENT)
+            else:
+                # print("================")
+                json_data = {
+                    'status_code': 204,
+                    'status': 'Success',
+                    'message': 'User not found'
+                }
+                return Response(json_data, status.HTTP_204_NO_CONTENT)
 
-    #     except Exception as err:
-    #         print("Error :", err)
-    #         json_data = {
-    #             'status_code': 500,
-    #             'status': 'Failed',
-    #             'error': err,
-    #             'remark': 'Landed in exception',
-    #         }
-    #         return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': err,
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserLoginView(APIView):
@@ -324,18 +326,29 @@ class SendZohoRegistrationLink_fun(APIView):
                     return Response(json_data, status.HTTP_200_OK)
                 userid=User.objects.get(id=serializer.data.get('userid'))
                 userid=userid
-                # print("---llll ",userid)
-                zohodata = zohoaccount.objects.create(
-                    userid=userid,
+                zohocredentialid=zohoaccount.objects.filter(userid=serializer.data.get('userid'))
+                if zohocredentialid:
+                    zohodata=zohoaccount.objects.get(userid=serializer.data.get('userid'))
+                    zohocredentialid.update(
                     clientid='',
                     clientsecret='',
                     accesstoken='',
                     refreshtoken='',
-                    redirecturi='',
-                    is_deleted=0,
-                    created_at=datetime.now(),
-                )
-                zohodata.save()
+                    redirecturi=''
+                    )
+                else:    
+                    # print("---llll ",userid)
+                    zohodata = zohoaccount.objects.create(
+                        userid=userid,
+                        clientid='',
+                        clientsecret='',
+                        accesstoken='',
+                        refreshtoken='',
+                        redirecturi='',
+                        is_deleted=0,
+                        created_at=datetime.now(),
+                    )
+                    zohodata.save()
                 print("-----------",zohodata.id)
                 # html_message="https://api-console.zoho.in"
                 emailBody = """ 
@@ -414,7 +427,7 @@ class SendZohoRegistrationLink_fun(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -516,7 +529,7 @@ class GetUserDetail_fun(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -676,16 +689,16 @@ class GetZohoCredential_cls(APIView):
             serializer = GetZohoCredentialSerializer(data=request.data)
             if serializer.is_valid(raise_exception=False):
 
-                zohoid = serializer.data.get('zohoaccountid')
-                datacheck=zohoaccount.objects.filter(id=zohoid)
+                userid = serializer.data.get('userid')
+                datacheck=zohoaccount.objects.filter(userid=userid)
                 print("------",datacheck)
                 #Check Data 
                 if datacheck:
                     #Getting data of user
-                    data = zohoaccount.objects.get(id=zohoid)
+                    data = zohoaccount.objects.get(userid=userid)
                     print("==========",data)
                     newdata = {
-                        "id": data.id,
+                        "zohoaccountid": data.id,
                         "clientid": data.clientid,
                         "clientsecret": data.clientsecret,
                         "accesstoken": data.accesstoken,
@@ -727,7 +740,7 @@ class GetZohoCredential_cls(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -757,7 +770,7 @@ class SendRedirectUriEmail(APIView):
                     clientid = getdatauser.clientid
                     redirecturi = getdatauser.redirecturi
                     # print(redirecturi, "-------------", clientid)
-                    emailBody = "UnOrg code : "+str(getdatauser.id)+"<br>https://accounts.zoho.com/oauth/v2/auth?scope=ZohoBooks.invoices.CREATE,ZohoBooks.invoices.READ,ZohoBooks.invoices.UPDATE,ZohoBooks.invoices.DELETE&client_id=" + \
+                    emailBody = "UnOrg code : "+str(getdatauser.id)+"<br>https://accounts.zoho.com/oauth/v2/auth?scope=ZohoBooks.invoices.CREATE,ZohoBooks.fullaccess.all,ZohoBooks.invoices.READ,ZohoBooks.invoices.UPDATE,ZohoBooks.invoices.DELETE&client_id=" + \
                         clientid+"&state="+str(getdatauser.id)+"&response_type=code&redirect_uri=" + \
                         redirecturi+"&access_type=offline"
                     emailSubject = "Get Zoho Code "
@@ -1038,11 +1051,38 @@ class VehicleList_fun(APIView):
 
                     vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                         'userid', ''))
-                    print("=============",vehicleobj)
+                    # print("=============",vehicleobj)
+                    vehiclelist=[]
+                    for data in vehicleobj:
+                        totalvehicle_remaining_weight=0
+                        for delivery_order in ordersdelivery.objects.filter(vehicle_id=data.id,user_id=data.userid.id,is_deleted=0):
+                            totalvehicle_remaining_weight+=delivery_order.weight
+                        datadict={
+                            "id": data.id,
+                            "vehiclename": data.vehiclename,
+                            "phone": data.phone,
+                            "maxorders": data.maxorders,
+                            "weightcapacity": data.weightcapacity,
+                            'userid': data.userid.id,
+                            'created_at': data.created_at,
+                            'password': data.password,
+                            'vehicle_remaining_weight': int(data.weightcapacity)-totalvehicle_remaining_weight
+                        }
+                        vehiclelist.append(datadict)
+
                     
-                    vehiclelist = [{"id": data.id, "vehiclename": data.vehiclename, "phone": data.phone, 
-                                    "maxorders": data.maxorders, "weightcapacity": data.weightcapacity, 'userid': data.userid.id,'created_at': data.created_at,'password': data.password} for data in vehicleobj]
-                    print("---------",vehiclelist)
+                    # vehiclelist = [{"id": data.id,
+                    # "vehiclename": data.vehiclename,
+                    # "phone": data.phone,
+                    # "remainingweight": [ delivery_order.weight for delivery_order in ordersdelivery.objects.filter(vehicle_id=data.id,user_id=data.userid.id,is_deleted=0)], 
+
+                    # "maxorders": data.maxorders,
+                    # "weightcapacity": data.weightcapacity,
+                    # 'userid': data.userid.id,
+                    # 'created_at': data.created_at,
+                    # 'password': data.password}
+                    #  for data in vehicleobj]
+                    # print("---------",vehiclelist)
                     if vehicleobj :
                         json_data = {
                             'status_code': 200,
@@ -1081,7 +1121,7 @@ class VehicleList_fun(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1446,11 +1486,13 @@ class FetchInvoiceData(APIView):
                                 
                             
                                 for item in response.json().get("invoice").get("line_items"):
-
-                                    getweight = iteminfo.objects.filter(zoho_item_id=item.get("item_id"))
+                                    
+                                    getweight = iteminfo.objects.filter(zoho_item_id=item.get("item_id"),userid=serializer.data.get(
+                        'userid', ''))
                                     if getweight:
 
-                                        getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"))
+                                        getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"),userid=serializer.data.get(
+                        'userid', ''))
                                         chekuserobj = User.objects.filter(id=serializer.data.get('userid', ''))
                                         if chekuserobj:
                                             userobj = User.objects.get(id=serializer.data.get('userid', ''))
@@ -1519,7 +1561,7 @@ class FetchInvoiceData(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1542,13 +1584,16 @@ class AddItemAPI(APIView):
                     # print("===========",data.refreshtoken)
                     parameters = {
                     # "refresh_token":data.refreshtoken,
-                    "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    "refresh_token":"1000.18dbbc8aeb1c86231d317882035fd4ba.6fb716064eb7baa1ca994b80faa337cb",
                     # "client_id":data.clientid,
-                    "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
+                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
+                    "client_id":'1000.KNTTWIQG6BRID6XQGEURG025O51XXD',
                     # "client_secret":data.clientsecret,
-                    "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    "client_secret":'c7a0541ea8b37ea7716dc368d393fdab5f11891ae1',
                     # "redirect_uri":data.redirecturi,
-                    "redirect_uri":'https://www.google.co.in',
+                    "redirect_uri":'https://www.onlinethela.online/add-access',
                     "grant_type":"refresh_token",
                     }
 
@@ -1567,10 +1612,12 @@ class AddItemAPI(APIView):
                         print("llll ",response)
                         if response.status_code == 200:
                             data =   response.json()
+                            message='Iitem not found'
                             # print(";;;;;;; ",data)
                             for d in data.get("items"):
+                                message='All items already exist'
                                 # check item id
-                                already=iteminfo.objects.filter(zoho_item_id=d.get('item_id', ''))
+                                already=iteminfo.objects.filter(zoho_item_id=d.get('item_id', ''),userid=serializer.data.get('userid'))
                                 userid=User.objects.get(id=serializer.data.get('userid'))
                                 if not already:
                                     zohodata = iteminfo.objects.create(
@@ -1583,35 +1630,38 @@ class AddItemAPI(APIView):
                                         updated_at=datetime.now(),
                                     )
                                     zohodata.save()
-                                else:print('Else')
+                                    message="Items updated"
+                                
                             
                             json_data = {
                                 'status_code': 201,
                                 'status': 'Success',
-                                'data':data,
-                                'message': 'User created'
+                                'data':'',
+                                'message': message
                             }
                             return Response(json_data, status.HTTP_201_CREATED)
-
-
-
-                # user.set_password(serializer.validated_data['password'])
-                # user.save()
-                # refresh = RefreshToken.for_user(user)
-                if 'user':
-                    json_data = {
-                        'status_code': 201,
-                        'status': 'Success',
-                        
-                        'message': 'User created'
-                    }
-                    return Response(json_data, status.HTTP_201_CREATED)
+                        else:
+                            json_data = {
+                                    'status_code': 400,
+                                    'status': 'Success',
+                                    'data':'',
+                                    'message': "{}".format(response)
+                                }
+                            return Response(json_data, status.HTTP_400_BAD_REQUEST)
+                    else:
+                            json_data = {
+                                    'status_code': 400,
+                                    'status': 'Success',
+                                    'data':'',
+                                    'message': "{}".format(response)
+                                }
+                            return Response(json_data, status.HTTP_400_BAD_REQUEST)
                 else:
                     json_data = {
                         'status_code': 200,
                         'status': 'Success',
-                        'data': 'User not created',
-                        'message': 'data not created'
+                        'data': 'User not found',
+                        'message': 'data not found'
                     }
                     return Response(json_data, status.HTTP_200_OK)
             else:
@@ -1628,7 +1678,7 @@ class AddItemAPI(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': "{}".format(err),
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1646,7 +1696,7 @@ class ItemList_fun(APIView):
                         'userid', ''))
                 if vehicledata:
 
-                    vehicleobj = iteminfo.objects.filter(is_deleted=0).order_by('item_waight')
+                    vehicleobj = iteminfo.objects.filter(is_deleted=0,userid=serializer.data.get('userid', '')).order_by('item_waight')
                     # print("=============",vehicleobj)
                     
                     vehiclelist = [{"id": data.id, "zoho_item_id": data.zoho_item_id, 
@@ -1826,26 +1876,50 @@ class GetOrderbySlotDetail(APIView):
                     print("---------",data)
                     if data:
                         print("++++++++++++++++++++")
-                        slotdata = slotinfo.objects.filter(id=slotidid)#userid=userid
+                        slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)#userid=userid
                         print("888888888 ",slotdata)
+                        checkorder_weight_msg=''
                         if slotdata:
-                            slotinfodata = slotinfo.objects.get(id=slotidid)#userid=userid
-                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
-                            orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates='',is_coordinate=0)
+                            vehiclelist=vehicleinfo.objects.filter(userid=userid,is_deleted=0)
+                            totalvehicleweight=0
+                            for vehicle in vehiclelist:
+                                totalvehicleweight+=int(vehicle.weightcapacity)
+                            print(len(vehiclelist),"-------Total vehicle weight------",totalvehicleweight)
+                            average_vehicle_calculated_weight=totalvehicleweight/len(vehiclelist)
+                            # vehiclelist=orderinfo.objects.filter(userid=userid)
+                            
+                            slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)#userid=userid
+                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid)
+                            orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid)
+                            orderwithcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight)
                             orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
+                            #Getting Extra Order weight
+                            orderwithoutexceeded = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0)
+                            # print("----Exceeded Order List >>>> ----- ",orderwithoutexceeded)
+                            allorderlist = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0)
+                            total_orders_weight=0
+                            for orderdata in allorderlist:
+                                total_orders_weight+=orderdata.weight
+                            print("Averate orders weight------>  ",total_orders_weight)
+                            # print("----Exceeded Order List >>>> ----- ",len(orderwithoutexceeded))
                             vehicledata={
                                 'totalorders':len(totalorders),
                                 'orderwithoutcoordinates':len(orderwithoutcoordinates),
-                                'orderwithcoordinats':orderwithcoordinats,
+                                'orderwithcoordinats':len(orderwithcoordinates),
+                                'orderweightexceededvehicleweight':len(orderwithoutexceeded),
                             }
-                            print("-----------",slotinfodata.slottime)
+                            print(average_vehicle_calculated_weight," Total Orders weight",total_orders_weight)
+                            if total_orders_weight>totalvehicleweight:
+                                checkorder_weight_msg='Orders weight is greater than vehicle weight capacity.Please Add more vehicle'
+                            # print("-----------",slotinfodata.slottime)
                     
                     
                         json_data = {
                             'status_code': 200,
                             'status': 'Success',
                             'data': vehicledata,
-                            'message': 'Item found'
+                            'message': 'Item found',
+                            'checkorder_weight_msg':checkorder_weight_msg
                         }
                         return Response(json_data, status.HTTP_200_OK)
                     else:
@@ -1878,7 +1952,7 @@ class GetOrderbySlotDetail(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1886,6 +1960,7 @@ class GetOrderbySlotDetail(APIView):
 from .route_optimisation_capacity_weight import generate_optimised_way as gow
 from .route_optimisation_capacity_weight import optimisation
 from .distance_matrix import distance_matrix
+from .rootoptgraph import plot_vehicle_graph as pltgraph
 class RootOptimazationAPI(APIView):
     permission_classes = [IsAuthenticated]
     # Handling Post Reuqest
@@ -1899,28 +1974,49 @@ class RootOptimazationAPI(APIView):
                 if datacheck:
                     #Getting data of user
                     # data = User.objects.get(id=userid)
+                    # Delete Data from Order Delivery Table Of Specific WareHouse-------------
+                    
                     slotidid = serializer.data.get('slotid')
                     data = slotinfo.objects.filter(id=slotidid)
                     if data:
+                      
                         slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
                         if slotdata:
                             slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
+                            deletewaredata=ordersdelivery.objects.filter(user_id=userid,time_slot=slotinfodata.slottime)
+                            if deletewaredata:
+                                deletewaredata.update(is_deleted=1)
                             vehicledata = vehicleinfo.objects.filter(userid=userid,is_deleted=0)
                             vehiclenamelist=[data.vehiclename for data in vehicledata]
+                            vehicleidlist=[data.id for data in vehicledata]
                             vehicleweightlist=[int(data.weightcapacity) for data in vehicledata]
                             vehiclemaxorderlist=[int(data.maxorders) for data in vehicledata]
                             vehicledatainfo=[]
+                            # print("---Vehicle id list : ",vehicleidlist)
+                            # print("---Vehicle name list : ",vehiclenamelist)
+                            # print("---Vehicle weight list : ",len(vehicleweightlist))
+                            # print("---Vehicle maxorder list : ",len(vehiclemaxorderlist))
+                            vehiclelist=vehicleinfo.objects.filter(userid=userid,is_deleted=0)
+                            averagevehicleweight=0
+                            for vehicle in vehiclelist:
+                                averagevehicleweight+=int(vehicle.weightcapacity)
+                                # print(len(vehiclelist),"-------2222------",vehicle.weightcapacity)
+                            average_vehicle_calculated_weight=averagevehicleweight/len(vehiclelist)
                             # print("55555555      ",slotinfodata.userid.longitude,slotinfodata.userid.latitude)
-                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
-                            order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates__isnull=False,is_coordinate=1)#Add in condition ,created_date=datetime.now()
+                            # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=serializer.data.get('userid'),is_deleted=0)
+                            # order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates__isnull=False,is_coordinate=1)#Add in condition ,created_date=datetime.now()
+                            order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight)#Add in condition ,created_date=datetime.now()
+                            # print("----order_with_coordinate length : ",len(order_with_coordinate))
                             # orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
-                            vehicledata={
-                                'totalorders':len(totalorders),
-                                'orderwithoutcoordinates':'',
-                                'orderwithcoordinats':'',
-                            }
+                            # vehicledata={
+                            #     'totalorders':len(totalorders),
+                            #     'orderwithoutcoordinates':'',
+                            #     'orderwithcoordinats':'',
+                            # }
+                            # print("=++++++++    ",order_with_coordinate)
                             final_data={'shipping_address':['none'],
                             'invoice_id':['none'],
+                            'order_id':['none'],
                             'customer_id':['none'],
                             'customer_name':['WareHouse'],
                             'invoice_number':['none'],
@@ -1933,9 +2029,12 @@ class RootOptimazationAPI(APIView):
                             'contactno':['none']
 
                                 }
+                            orderidlist=[]
                             for data in list(order_with_coordinate):
-                                final_data['shipping_address'].append(data.shipping_address), 
+                                orderidlist.append(data.id)
+                                final_data['shipping_address'].append(data.shipping_address),  
                                 final_data['invoice_id'].append(data.invoice_id),
+                                final_data['order_id'].append(data.id),
                                 final_data['customer_id'].append(data.customer_id),
                                 final_data['customer_name'].append(data.customer_name), 
                                 final_data['invoice_number'].append(data.invoice_number), 
@@ -1955,14 +2054,21 @@ class RootOptimazationAPI(APIView):
                             due_amount=final_data['invoice_balance']
                             phone_number=final_data['contactno']
                             invoice_number=final_data['invoice_number']
-                            print(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,)
+                            #Additional Feilds-------------
+                            invoiceidlist=final_data['invoice_id']
+                            orderidlist=final_data['order_id']
+                            useridlist=[userid]
+
+                            # print("))))))))    ",vehicle_wt_capacities,vehicle_order_capcity,vehicle_names)
                             # k=gow(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,  depot=0)
 
-                            data_locations =gow(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names, due_amount,phone_number,invoice_number, depot=0)
+                            data_locations =gow(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,vehicleidlist,location_names, due_amount,phone_number,invoice_number,invoiceidlist,orderidlist, depot=0)
+                            # print("===========>>>>> ",data_locations)
                             final_data=[]
                             for key in data_locations.keys():
                                 entry={}
-                                entry['vehicle_name']=key
+                                entry['vehicle_id']=key
+                                entry['vehicle_name']=data_locations[key][0][0][6]
                                 entry['data']=[]
                                 for order in data_locations[key][0]:
                                     obj={}
@@ -1970,13 +2076,72 @@ class RootOptimazationAPI(APIView):
                                     obj['Contact']=order[2]
                                     obj['Coordinates']=order[4]
                                     obj['DueAmount']=order[1]
+                                    obj['invoice_id']=order[5]
+                                    obj['vehicle_name']=order[6]
+                                    obj['weight']=order[7]
+                                    obj['orderid']=order[8]
                                     entry['data'].append(obj)
                                     # entry.append(obj)
                                 final_data.append(entry)
+                            
+                            for assignorder in final_data:
+                                # print("Hey I am data of one vehicle : ===========  ",assignorder)
+                                vehicle_id = assignorder.get("vehicle_id")
+                                print("Vehicle Id is : ",vehicle_id)
+                                serial_num=0
+                                for orderdata in assignorder.get("data"):
+                                    invoice_id=orderdata.get("invoice_id")
+                                    orderinfodata= orderinfo.objects.get(userid=userid,invoice_id=invoice_id,is_deleted=0) if orderinfo.objects.filter(userid=userid,invoice_id=invoice_id,is_deleted=0).exists() else 0
+                                    # print(serial_num,"-------++++++++++-------",type(orderinfodata))
+                                    if orderinfodata:
+                                        # print(serial_num,"-------++++++++++-------",orderinfodata.weight)
+                                   
+                                        checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invoice_id,vehicle_id=vehicle_id,user_id=userid,is_deleted=0)
+                                        if not checkorderdelivery:
+                                            vehicleobj=vehicleinfo.objects.get(id=vehicle_id,userid=userid,is_deleted=0)
+                                            userobj=User.objects.get(id=userid)
+                                            
+                                            # print("--------",orderinfodata)
+                                            orderdata=ordersdelivery.objects.create(
+                                                order_id=orderinfodata,
+                                                vehicle_id=vehicleobj,
+                                                time_slot=orderinfodata.time_slot,
+                                                user_id=userobj,
+                                                customer_name=orderinfodata.customer_name,
+                                                phone_number=orderinfodata.contactno,
+                                                email='',
+                                                location_coordinates=orderinfodata.location_coordinates,
+                                                location_url=orderinfodata.location_url,
+                                                weight=orderinfodata.weight,
+                                                serialno=serial_num,
+                                                shipping_address=orderinfodata.shipping_address,
+                                                collectedAmount=0,
+                                                invoice_total=orderinfodata.invoice_total,
+                                                invoice_balance=orderinfodata.invoice_balance,
+                                                invoice_number=orderinfodata.invoice_number,
+                                                invoice_id=orderinfodata.invoice_id,
+                                                status='Pending',
+                                                upi=0,
+                                                cash=0,
+                                                other=0,
+                                                reason='',
+                                                is_deleted=0,
+                                                is_published=0,
+                                                updated_at=datetime.now(),
+                                                created_date=datetime.now()
+                                            )
+                                            orderdata.save()
+                                        else:
+                                            print("Else condition----------- ")
+                                        
+                                        serial_num+=1
+                            graphurl=pltgraph(final_data)
+                            graph_image_url='https://www.onlinethela.online/static/warehouses_graph/'+graphurl
                             json_data = {
                             'status_code': 200,
                             'status': 'Success',
                             'data': final_data,
+                            'graph_url': graph_image_url,
                             'message': 'Item found'
                             }
                             return Response(json_data, status.HTTP_200_OK)   
@@ -2016,7 +2181,7 @@ class RootOptimazationAPI(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -2127,18 +2292,37 @@ class GetOrderwithoutCoordinatesList(APIView):
                     data = slotinfo.objects.filter(id=slotidid)
                     print("---------",data)
                     if data:
+                        orderlist=[]
                         print("++++++++++++++++++++")
                         slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
-                        print("888888888 ",slotdata)
+                        # print("888888888 ",slotdata)
                         if slotdata:
                             slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
+                            print("Inside the second elif")
+                            vehiclelist=vehicleinfo.objects.filter(userid=userid,is_deleted=0)
+                            averagevehicleweight=0
+                            for vehicle in vehiclelist:
+                                averagevehicleweight+=int(vehicle.weightcapacity)
+                                # print(len(vehiclelist),"-------2222------",vehicle.weightcapacity)
+                            average_vehicle_calculated_weight=averagevehicleweight/len(vehiclelist)
                             # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
+                            orderwithoutcoordinates=[]
                             if coordinate_type=='with-coordinate':
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'))
+                                # print("If condition")
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight)
                             elif coordinate_type=='without-coordinate':
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=serializer.data.get('userid'))
+                                # print("elif condition")
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=serializer.data.get('userid'),is_deleted=0)
+                            elif coordinate_type=='orderweight-exceed':
+                                #Getting Extra Order weight
+                               
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0)
+ 
+                            # print("5555555555   ",orderwithoutcoordinates)
                             orderlist = [{"id": data.id, "shipping_address": data.shipping_address, 
                             "invoice_id": data.invoice_id, 
+                            "vehicleid": f'{ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().vehicle_id.id if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else 0}' , 
+                            "serialno": f'{ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().serialno if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else 0}' , 
                             "customer_name": data.customer_name, 
                             "invoice_number": data.invoice_number, 
                             "invoice_total": data.invoice_total, 
@@ -2150,7 +2334,7 @@ class GetOrderwithoutCoordinatesList(APIView):
                             "is_deleted": data.is_deleted, 
                             "updated_at": data.updated_at, 
                                             "customer_id": data.customer_id, "weight": data.weight, 'userid': data.userid.id,'created_date': data.created_date} for data in orderwithoutcoordinates]
-                            # print("---------",vehiclelist)
+                            # print("---------",orderlist)
                            
                     
                     
@@ -2191,7 +2375,7 @@ class GetOrderwithoutCoordinatesList(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f"{err}",
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -2319,30 +2503,33 @@ class GetAppOrderDetail(APIView):
                 print("---------",data)
                 if data:
                     orderdata = ordersdelivery.objects.get(id=ordersdelivery_id,vehicle_id=vehicle_id)
+                    
                     vehicledata={
-                        'ordersdeliveryid':orderdata.id,
-                        'order_id':orderdata.order_id.id,
-                        'vechicle_id':orderdata.vehicle_id.id,
-                        'time_slot':orderdata.time_slot,
-                        'user_id' :orderdata.user_id.id,
-                        'customer_name':orderdata.customer_name,
-                        'phone_number':orderdata.phone_number,
-                        'email' :orderdata.email,
-                        'latitude':orderdata.latitude,
-                        'longitude':orderdata.longitude,
-                        'weight' :orderdata.weight,
-                        'location':orderdata.location,
-                        'collectedAmount':orderdata.collectedAmount,
-                        'orderValue':orderdata.orderValue, 
-                        'invoiceNo' :orderdata.invoiceNo,
-                        'invoiceID':orderdata.invoiceID,
-                        'status' :orderdata.status,
-                        'upi' :orderdata.upi,
-                        'cash':orderdata.cash,
-                        'other':orderdata.other,
-                        'reason':orderdata.reason,
-                        'totalamount':orderdata.upi+orderdata.cash+orderdata.other,
-                    }
+                        "ordersdeliveryid":orderdata.id,
+                        "order_id": orderdata.order_id.id,
+                        "vehicle_id": orderdata.vehicle_id.id,
+                        "vehiclename": orderdata.vehicle_id.vehiclename,
+                        "time_slot": orderdata.time_slot,
+                        'user_id': orderdata.user_id.id,
+                        "customer_name": orderdata.customer_name,
+                        "phone_number": orderdata.phone_number,
+                        'email': orderdata.email,
+                        'location_coordinates':orderdata.location_coordinates,
+                        'location_url': orderdata.location_url,
+                        'weight': orderdata.weight,
+                        'shipping_address': orderdata.shipping_address ,
+                        'collectedAmount': orderdata.collectedAmount,
+                        'invoice_total': orderdata.invoice_total ,
+                        'invoice_balance': orderdata.invoice_balance ,
+                        'invoice_number': orderdata.invoice_number ,
+                        'invoice_id': orderdata.invoice_id ,
+                        'status': orderdata.status ,
+                        'upi': orderdata.upi ,
+                        'cash': orderdata.cash,
+                        'other': orderdata.other ,
+                        'reason': orderdata.reason,
+                        'totalamount':orderdata.upi+orderdata.cash
+                        } 
                     
                     json_data = {
                         'status_code': 200,
@@ -2389,23 +2576,60 @@ class GetAppOrderList_f(APIView):
                 vehicledata = vehicleinfo.objects.filter(id=serializer.data.get(
                         'vehicleid', ''))
                 if vehicledata:
-
+                    #Getting Order by Vehicleid and is_published is True
                     vehicleobj = ordersdelivery.objects.filter(is_deleted=0,vehicle_id=serializer.data.get(
-                        'vehicleid', ''))
+                        'vehicleid', ''),is_published=1).order_by('serialno')
+
                     total_collected_amount=0.0
+                    total_collected_upi=0.0
+                    total_collected_cash=0.0
+                    # print("---------",vehicleobj)
+                    orderlist=[]
+                    for data in vehicleobj:
+                        total_collected_amount+=data.upi+data.cash
+                        total_collected_upi+=data.upi
+                        total_collected_cash+=data.cash
+                        coordianteslist=data.location_coordinates.split(" ")
+                        # print("-----------",coordianteslist)
                     
-                    vehicleorderlist = [{"ordersdeliveryid":data.id,"order_id": data.order_id.id, "vehicle_id": data.vehicle_id.id, "time_slot": data.time_slot, 'user_id': data.user_id.id,
-                                    "customer_name": data.customer_name, "phone_number": data.phone_number, 'email': data.email, 'latitude':data.latitude, 'longitude': data.longitude,
-                                     'weight': data.weight, 'location': data.location ,'collectedAmount': data.collectedAmount,'orderValue': data.orderValue ,'invoiceNo': data.invoiceNo ,'invoiceID': data.invoiceID , 'status': data.status ,'upi': data.upi ,'cash': data.cash,'other': data.other ,'reason': data.reason,'totalamount':data.upi+data.cash+data.other}  for data in vehicleobj]
-                    
-                    print("---------")
-                    if vehicleorderlist :
-                        total_collected_amount =vehicleorderlist[0].get('totalamount')
+                        deliveryorderdata={"ordersdeliveryid":data.id,
+                            "order_id": data.order_id.id,
+                            "vehicle_id": data.vehicle_id.id,
+                            "vehiclename": data.vehicle_id.vehiclename,
+                            "time_slot": data.time_slot,
+                            'user_id': data.user_id.id,
+                            "customer_name": data.customer_name,
+                            "phone_number": data.phone_number,
+                            'email': data.email,
+                            'location_coordinates':data.location_coordinates,
+                            'latitude':coordianteslist[0] if len(coordianteslist) ==2 else 0 ,
+                            'longitude':coordianteslist[1] if len(coordianteslist) ==2 else 0 ,
+                            'location_url': data.location_url,
+                            'weight': data.weight,
+                            'shipping_address': data.shipping_address ,
+                            'collectedAmount': data.collectedAmount,
+                            'invoice_total': data.invoice_total ,
+                            'invoice_balance': data.invoice_balance ,
+                            'invoice_number': data.invoice_number ,
+                            'invoice_id': data.invoice_id ,
+                            'status': data.status ,
+                            'upi': data.upi ,
+                            'cash': data.cash,
+                            'other': data.other ,
+                            'reason': data.reason,
+                            'upiamount':data.upi,
+                            'totalamount':data.upi+data.cash
+                            } 
+                        orderlist.append(deliveryorderdata)
+                        # print("-------+++++++++++--------    ",orderlist)
+                    if orderlist :
                         json_data = {
                             'status_code': 200,
                             'status': 'Success',
-                            'data': vehicleorderlist,
+                            'data': orderlist,
                             'total_collected_amount': total_collected_amount,
+                            'total_collected_upi': total_collected_upi,
+                            'total_collected_cash': total_collected_cash,
                             'message': 'Order found'
                         }
                         return Response(json_data, status.HTTP_200_OK)
@@ -2443,3 +2667,1003 @@ class GetAppOrderList_f(APIView):
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class NewFetchInvoiceData(APIView):
+    # permission_classes = [IsAuthenticated]
+    # Add warehouse cordinates Post Reuqest
+    def post(self, request):
+        try:
+            print("------------New fetch invoice------")
+            req = requests.Session()
+            serializer = GetSlotListSerializer(data=request.data)
+            if serializer.is_valid():
+                usercordiantes = zohoaccount.objects.filter(userid=serializer.data.get(
+                        'userid', ''))
+                if usercordiantes:
+                    # data=zohoaccount.objects.get(userid=serializer.data.get(
+                    #     'userid', ''))
+                    # print("tttttoken ",data.refreshtoken)
+                    parameters = {
+                    # "refresh_token":data.refreshtoken,
+                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",#Vishal
+                    "refresh_token":"1000.1ffe9bac5af892bbef2638945a872502.88932d5e0bdbcb08ebaac8e827fe32e7",#Sangam
+                    # "client_id":data.clientid,
+                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',#Vishal
+                    "client_id":'1000.KNTTWIQG6BRID6XQGEURG025O51XXD',#Sangam
+                    # "client_secret":data.clientsecret,
+                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',#Vishal
+                    "client_secret":'c7a0541ea8b37ea7716dc368d393fdab5f11891ae1',#Sangam
+                    # "redirect_uri":data.clientsecret,
+                    # "redirect_uri":'https://www.google.co.in',
+                    "redirect_uri":'https://onlinethela.online/add-access',
+                    "grant_type":"refresh_token",
+                    }
+                    
+ 
+                    response = req.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
+                    if response.status_code == 200:
+                        data =   response.json()
+                        # print("+++++++++  ",data)
+                        accesstoken = data['access_token']
+                        # print("-------",accesstoken)
+                        currentdate=datetime.now().date()
+                        currentdate='2022-11-20'
+                        headers = {
+                        'Content-Type':'application/json',
+                        'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
+                                }
+
+                        response = req.get("https://books.zoho.in/api/v3/invoices?date_start={}&date_end={}".format(currentdate,currentdate), headers=headers)
+                        if response.status_code == 200:
+                            data1 = response.json()
+                            invoices=data1.get("invoices")
+                            
+                            if invoices:
+                                print("0000000000      ",len(invoices))
+                                
+                                orderupdatemessage="All invoices already exist"
+                                countdata=0
+                                for invoice in invoices:
+                                    # Getting Invoice data
+                                    itemslist_of_invoice = req.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
+                                    print("mmmmm : ...........>>>> ",countdata)
+                                    if itemslist_of_invoice.status_code == 200:
+                                        print("If Condition 7777777777777  ::::: ",countdata)
+                                        cf_location_coordinates=itemslist_of_invoice.json().get("invoice").get("cf_location_coordinates",0)
+                                        cf_location_url=itemslist_of_invoice.json().get("invoice").get("cf_location_url",0)
+                                        invoicecreateddatetime=invoice.get('date','')
+                                        cusomercontact=itemslist_of_invoice.json().get("invoice").get("contact_persons_details",'')[0].get("mobile") if itemslist_of_invoice.json().get("invoice").get("contact_persons_details",'')[0].get("mobile") else itemslist_of_invoice.json().get("invoice").get("contact_persons_details",'')[0].get('phone')
+
+                                    
+                                        totalitemwaight=0
+                                        for item in itemslist_of_invoice.json().get("invoice").get("line_items"):
+                                            # print("=======   ",item)
+                                                
+                                            getweight = iteminfo.objects.filter(zoho_item_id=item.get("item_id"),userid=serializer.data.get('userid', ''))
+                                            #Calculating items waight ----------
+                                            if getweight:
+                                                getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"),userid=serializer.data.get('userid', ''))
+                                                #Multiply item quantity with item waight
+                                                totalitemwaight+=item.get("quantity")*getweightdata.item_waight
+                                        
+                                        userobj = User.objects.get(id=serializer.data.get('userid', ''))
+                                        #Check Invoice id exits for particular user or not
+                                        orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
+                                        # print("---------------",invoice.get("cf_location_coordinate"))
+                                        if not orderobj:
+                                            #Check Is Quardinates available
+                                            bool_value=0
+                                            if checkcoordinate(s=itemslist_of_invoice.json().get("invoice").get("cf_location_coordinates")):
+                                                bool_value=1
+                                            orderdata=orderinfo.objects.create(
+                                                userid=userobj,
+                                                shipping_address=invoice.get("shipping_address").get("address",''),
+                                                invoice_id=invoice.get("invoice_id",''),
+                                                customer_id=invoice.get("customer_id",''),
+                                                weight=totalitemwaight,
+                                                customer_name=invoice.get("customer_name",''),
+                                                invoice_number=invoice.get("invoice_number",''),
+                                                invoice_total=invoice.get("total",''),
+                                                invoice_balance=invoice.get("balance",''),
+                                                time_slot=invoice.get("cf_delivery_slots",''),
+                                                contactno=cusomercontact,
+                                                location_coordinates=cf_location_coordinates,
+                                                location_url=cf_location_url,
+                                                is_coordinate=bool_value,
+                                                is_deleted=0,
+                                                updated_at=datetime.now(),
+                                                created_date=invoicecreateddatetime,
+                                            )
+                                            orderdata.save()
+                                            orderupdatemessage="Invoices updated"
+                                        else:
+                                            print("Else Condition ----------->>>>  ::::: ",countdata)
+                                            orderobj.update(updated_at=timezone.now())
+                                        # print("@@@@@@@@@@@@@ 22222222")
+                                        countdata+=1
+                                        
+                                          
+                                else:
+                                    json_data = {
+                                    'status_code': 200,
+                                    'status': 'Success',
+                                    'data': '',
+                                    'message': orderupdatemessage
+                                    }
+                                    return Response(json_data, status.HTTP_200_OK)
+                            else:
+                                json_data = {
+                                'status_code': 400,
+                                'status': 'Failed',
+                                'data': 'Invoices not found',
+                                'message': "Data not found"
+                                }
+                                return Response(json_data, status.HTTP_400_BAD_REQUEST)
+
+                        else:
+                            json_data = {
+                            'status_code': 400,
+                            'status': 'Failed',
+                            'data': '',
+                            'message': "{}".format(response.json())
+                            }
+                            return Response(json_data, status.HTTP_400_BAD_REQUEST)
+                else:
+                    json_data = {
+                        'status_code': 400,
+                        'status': 'Failed',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_400_BAD_REQUEST)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class GetLastInvoiceUpdatedDate_fun(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            # print("--------------")
+            mycheckdata=orderinfo.objects.filter(userid=request.data.get("userid") if request.data.get("userid") else 0).first()
+            #Check Data 
+            if mycheckdata:
+                # print("--------------->>>>>>>   ",mycheckdata.updated_at.strftime("%H:%M:%S"))
+                # print("--------------->>>>>>>   ",type(mycheckdata.updated_at))
+                newdata = {
+                        "userid": mycheckdata.userid.id,
+                        "customer_id": mycheckdata.customer_id,
+                        "weight": mycheckdata.weight,
+                        "customer_name": mycheckdata.customer_name,
+                        "invoice_number": mycheckdata.invoice_number,
+                        "invoice_total": mycheckdata.invoice_total,
+                        "invoice_balance": mycheckdata.invoice_balance,
+                        "time_slot": mycheckdata.time_slot,
+                        "contactno": mycheckdata.contactno,
+                        "location_coordinates": mycheckdata.location_coordinates,
+                        "is_coordinate": mycheckdata.is_coordinate,
+                        "is_deleted": mycheckdata.is_deleted,
+                        "updated_at": mycheckdata.updated_at.strftime("%H:%M:%S"),
+                        "created_date": mycheckdata.created_date,
+                    }
+                # print("----------->>>>>>>     ",newdata)
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Success',
+                    'data': newdata,
+                    'message': 'User found'
+                }
+                return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("================")
+                json_data = {
+                    'status_code': 204,
+                    'status': 'Success',
+                    'data': '',
+                    'message': 'User not found'
+                }
+                return Response(json_data, status.HTTP_204_NO_CONTENT)
+
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class AssignOrdertoVehicle_fun(APIView):
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            # print("iiiiiiiii ",request.id)
+            serializer = AssignOrdertoVehicleSerializer(data=request.data)
+            if serializer.is_valid():
+                vehicleid=serializer.data.get('vehicleid')
+                orderid=serializer.data.get('orderid')
+                userid=serializer.data.get('userid')
+                invoiceid=serializer.data.get('invoiceid')
+                slotid=serializer.data.get('slotid')
+                userinfo = User.objects.filter(id=userid)
+                # userinfo = User.objects.filter(id=userid)
+                if userinfo:
+                    userinfo = User.objects.get(id=userid)
+                    checkvehicle = vehicleinfo.objects.filter(id=vehicleid , userid=userid).first()
+                    # print("--------------",userinfo.get("username"))
+                    if checkvehicle:
+                        checkslotinfo = slotinfo.objects.filter(id=slotid , userid=userid).first()
+                        if checkslotinfo:
+                            checkorderinfo = orderinfo.objects.filter(id=orderid ,invoice_id=invoiceid, userid=userid).first()
+                            if checkorderinfo:
+                                print("2222222222222       00000")
+                                checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invoiceid,vehicle_id=vehicleid,user_id=userid,is_deleted=0)
+                                # print("--------",checkorderdelivery)
+                                if not checkorderdelivery:
+                                    orderdata=ordersdelivery.objects.create(
+                                        order_id=checkorderinfo,
+                                        vehicle_id=checkvehicle,
+                                        time_slot=checkslotinfo.slottime,
+                                        user_id=userinfo,
+                                        customer_name=checkorderinfo.customer_name,
+                                        phone_number=checkorderinfo.contactno,
+                                        email='',
+                                        location_coordinates=checkorderinfo.location_coordinates,
+                                        location_url='',
+                                        weight=checkorderinfo.weight,
+                                        shipping_address=checkorderinfo.shipping_address,
+                                        collectedAmount=0,
+                                        invoice_total=checkorderinfo.invoice_total,
+                                        invoice_balance=checkorderinfo.invoice_balance,
+                                        invoice_number=checkorderinfo.invoice_number,
+                                        invoice_id=checkorderinfo.invoice_id,
+                                        status='Pending',
+                                        upi=0,
+                                        cash=0,
+                                        other=0,
+                                        reason='',
+                                        is_deleted=0,
+                                        is_published=0,
+                                        updated_at=datetime.now(),
+                                        created_date=checkorderinfo.created_date
+                                    )
+                                    orderdata.save()
+                                    json_data = {
+                                        'status_code': 201,
+                                        'status': 'Success',
+                                        'message': 'Order successfully assigned to vehicle '
+                                    }
+                                    return Response(json_data, status.HTTP_201_CREATED)
+                                else:
+                                    json_data = {
+                                        'status_code': 204,
+                                        'status': 'Success',
+                                        'message': 'Order already exist for this vehicle'
+                                    }
+                                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+                            else:
+                                json_data = {
+                                    'status_code': 204,
+                                    'status': 'Success',
+                                    'message': 'Order not found for this userid'
+                                }
+                                return Response(json_data, status.HTTP_204_NO_CONTENT)
+                        else:
+                            json_data = {
+                                'status_code': 204,
+                                'status': 'Success',
+                                'message': 'Slot not found for this userid'
+                            }
+                            return Response(json_data, status.HTTP_204_NO_CONTENT)
+                    else:
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'message': 'Vehicle not found for this user'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+    # Handling Patch Reuqest
+    def patch(self, request):
+        try:
+            # print("iiiiiiiii ",request.id)
+            serializer = EditAssignOrdertoVehicleSerializer(data=request.data)
+            if serializer.is_valid():
+                # ordersdeliveryid=serializer.data.get('ordersdeliveryid')
+                vehicleid=serializer.data.get('vehicleid')
+                orderid=serializer.data.get('orderid')
+                userid=serializer.data.get('userid')
+                invoiceid=serializer.data.get('invoiceid')
+                slotid=serializer.data.get('slotid')
+                userinfo = User.objects.filter(id=userid)
+                # userinfo = User.objects.filter(id=userid)
+                if userinfo:
+                    userinfo = User.objects.get(id=userid)
+                    checkvehicle = vehicleinfo.objects.filter(id=vehicleid , userid=userid).first()
+                    # print("--------------",userinfo.get("username"))
+                    if checkvehicle:
+                        checkslotinfo = slotinfo.objects.filter(id=slotid , userid=userid).first()
+                        if checkslotinfo:
+                            checkorderinfo = orderinfo.objects.filter(id=orderid ,invoice_id=invoiceid, userid=userid).first()
+                            if checkorderinfo:
+                                print("2222222222222       00000")
+                                checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invoiceid,time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0)
+                                # print("--------",checkorderdelivery)
+                                if checkorderdelivery:
+                                    orderdata=checkorderdelivery.update(
+                                        vehicle_id=checkvehicle,
+                                        updated_at=timezone.now(),
+                                    )
+                                    json_data = {
+                                        'status_code': 200,
+                                        'status': 'Success',
+                                        'message': 'Order Update Successfully'
+                                    }
+                                    return Response(json_data, status.HTTP_200_OK)
+                                else:
+                                    json_data = {
+                                        'status_code': 204,
+                                        'status': 'Success',
+                                        'message': 'Order not found'
+                                    }
+                                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+                            else:
+                                json_data = {
+                                    'status_code': 204,
+                                    'status': 'Success',
+                                    'message': 'Order not found for this userid'
+                                }
+                                return Response(json_data, status.HTTP_204_NO_CONTENT)
+                        else:
+                            json_data = {
+                                'status_code': 204,
+                                'status': 'Success',
+                                'message': 'Slot not found for this userid'
+                            }
+                            return Response(json_data, status.HTTP_204_NO_CONTENT)
+                    else:
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'message': 'Vehicle not found for this user'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AllocatedToVehicleDeliveryOrderList_f(APIView):
+    # permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = GetSlotListSerializer(data=request.data)
+            if serializer.is_valid():
+                # print("--------------",serializer.data.get('userid', ''))
+                vehicledata = User.objects.filter(id=serializer.data.get(
+                        'userid', '')).exists()
+                if vehicledata:
+                    vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                        'userid', ''))
+                    finaldelveyorder=[]
+                    if vehicleobj:
+                        for vehcledata in vehicleobj:
+                            dictdata={}
+                            # print("------------>>>> ",vehcledata.id)
+                            vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
+                                'userid', ''),vehicle_id=vehcledata.id).order_by('serialno')
+                            
+                            total_collected_amount=0.0
+                            total_collected_upi=0.0
+                            total_collected_cash=0.0
+                            # print("---------",vehicleobj)
+                            orderlist=[]
+                            for data in vehicleobj:
+                                total_collected_amount+=data.upi+data.cash
+                                total_collected_upi+=data.upi
+                                total_collected_cash+=data.cash
+                            
+                                deliveryorderdata={"ordersdeliveryid":data.id,
+                                    "order_id": data.order_id.id,
+                                    "vehicle_id": data.vehicle_id.id,
+                                    "vehiclename": data.vehicle_id.vehiclename,
+                                    "time_slot": data.time_slot,
+                                    'user_id': data.user_id.id,
+                                    "customer_name": data.customer_name,
+                                    "phone_number": data.phone_number,
+                                    'email': data.email,
+                                    'location_coordinates':data.location_coordinates,
+                                    'location_url': data.location_url,
+                                    'weight': data.weight,
+                                    'shipping_address': data.shipping_address ,
+                                    'collectedAmount': data.collectedAmount,
+                                    'invoice_total': data.invoice_total ,
+                                    'invoice_balance': data.invoice_balance ,
+                                    'invoice_number': data.invoice_number ,
+                                    'invoice_id': data.invoice_id ,
+                                    'status': data.status ,
+                                    'upi': data.upi ,
+                                    'cash': data.cash,
+                                    'other': data.other ,
+                                    'serialno': data.serialno ,
+                                    'reason': data.reason,
+                                    'upiamount':data.upi,
+                                    'totalamount':data.upi+data.cash+data.other
+                                    } 
+                                orderlist.append(deliveryorderdata)
+                            dictdata.update({"vehicleid":vehcledata.id,"vehiclename":vehcledata.vehiclename,"orderdatabyvehicle":orderlist,'total_collected_amount': total_collected_amount,
+                            'total_collected_upi': total_collected_upi,
+                            'total_collected_cash': total_collected_cash})
+                            finaldelveyorder.append(dictdata)
+                            # finaldelveyorder+=vehicleorderlist
+                    if finaldelveyorder :
+                        # total_collected_amount =vehicleorderlist[0].get('totalamount')
+                        
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': finaldelveyorder,
+                            'message': 'Order found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        print("================")
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'message': 'Order not found'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f"{err}",
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class PublishOrderDeliveryList_fun(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            print("--------------")
+            datacheck=User.objects.filter(id=request.data.get("userid") if request.data.get("userid") else 0)
+            #Check Data 
+            if datacheck:
+                checkorderdata=ordersdelivery.objects.filter(user_id=request.data.get("userid") ,is_deleted=0)
+                if checkorderdata:
+                    #Getting data of user
+                    checkupdate=checkorderdata.update(
+                        is_published=1
+                    )
+            
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': checkupdate,
+                        'message': 'Order published successfully'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'Order not found for this user'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                json_data = {
+                    'status_code': 204,
+                    'status': 'Success',
+                    'data': '',
+                    'message': 'User not found'
+                }
+                return Response(json_data, status.HTTP_204_NO_CONTENT)
+
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class GetZohoCredentialByUserID_fun(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            print("--------------")
+            datacheck=User.objects.filter(id=request.data.get("userid") if request.data.get("userid") else 0)
+            # print("------",datacheck)
+            #Check Data 
+            if datacheck:
+                #Getting data of user
+                data = zohoaccount.objects.filter(userid=request.data.get("userid"),is_deleted=0)
+                if data:
+                    # print("==========",data)
+                    newdata = {
+                            "id": data.userid.id,
+                            "clientid": data.clientid,
+                            "clientsecret": data.clientsecret,
+                            "accesstoken": data.accesstoken,
+                            "refreshtoken": data.refreshtoken,
+                            "redirecturi": data.redirecturi,
+                            "is_deleted": data.is_deleted,
+                            "created_at": data.created_at
+                        }
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': newdata,
+                        'message': 'User found'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("================")
+                json_data = {
+                    'status_code': 204,
+                    'status': 'Success',
+                    'data': '',
+                    'message': 'User not found'
+                }
+                return Response(json_data, status.HTTP_204_NO_CONTENT)
+
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+class TestCaseCheckAPI_fun(APIView):
+    def post(self, request):
+        try:
+            print("--------------",datetime.now())
+            json_data = {
+                'status_code': 200,
+                'status': 'Success',
+                'data': '',
+                'message': 'Data found'
+            }
+            return Response(json_data, status.HTTP_200_OK)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+class AssignSerialNumberToOrders_fun(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+            try:
+                # print("iiiiiiiii ",request.id)
+                serializer = AssignSerialNumberToOrdersSerializer(data=request.data)
+                if serializer.is_valid():
+                    # ordersdeliveryid=serializer.data.get('ordersdeliveryid')
+                    userid=serializer.data.get('userid')
+                    listofinvoiceid_serialno=serializer.data.get('listofinvoiceid_serialno')
+                    slotid=serializer.data.get('slotid')
+                    userinfo = User.objects.filter(id=userid)
+                    # userinfo = User.objects.filter(id=userid)
+                    if userinfo:
+                        userinfo = User.objects.get(id=userid)
+
+                        checkslotinfo = slotinfo.objects.filter(id=slotid , userid=userid).first()
+                        if checkslotinfo:
+                            newserialnumberwithinvoiceid = json.loads(listofinvoiceid_serialno)
+                            message="Order not update successfully"
+                            for invdata in newserialnumberwithinvoiceid:
+                                # print(invdata.get("serialno"),"-----invoice id----",invdata.get("invoice_id"))
+                            
+                                checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invdata.get("invoice_id"),time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0)
+                                print("--------",checkorderdelivery)
+                                if checkorderdelivery:
+                                    orderdata=checkorderdelivery.update(
+                                        serialno=invdata.get("serialno"),
+                                        updated_at=timezone.now(),
+                                    )
+                                    message="Order update successfully"
+                            if message=="Order update successfully":
+                                json_data = {
+                                    'status_code': 200,
+                                    'status': 'Success',
+                                    'message': message
+                                }
+                                return Response(json_data, status.HTTP_200_OK)
+                            else:
+                                json_data = {
+                                'status_code': 204,
+                                'status': 'Success',
+                                'message': "Order not update successfully"
+                                }
+                                return Response(json_data, status.HTTP_204_NO_CONTENT)
+                           
+                        else:
+                            json_data = {
+                                'status_code': 204,
+                                'status': 'Success',
+                                'message': 'Slot not found for this userid'
+                            }
+                            return Response(json_data, status.HTTP_204_NO_CONTENT)
+                       
+                    else:
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'message': 'User not found'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    json_data = {
+                        'status_code': 300,
+                        'status': 'Failed',
+                        'error': serializer.errors,
+                        'remark': 'Serializer error'
+                    }
+                    return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+            except Exception as err:
+                print("Error :", err)
+                json_data = {
+                    'status_code': 500,
+                    'status': 'Failed',
+                    'error': f'{err}',
+                    'remark': 'Landed in exception',
+                }
+                return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+class HistoryAllocatedToVehicleDeliveryOrderList_f(APIView):
+    # permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = HistoryGetSlotListSerializer(data=request.data)
+            if serializer.is_valid():
+                # print("--------------",serializer.data.get('userid', ''))
+                vehicledata = User.objects.filter(id=serializer.data.get(
+                        'userid', '')).exists()
+                if vehicledata:
+                    checkslot = slotinfo.objects.filter(id=serializer.data.get('slotinfoid', ''),userid=serializer.data.get('userid', ''),is_deleted=0)
+                    if checkslot:
+                        slotdata = slotinfo.objects.get(id=serializer.data.get('slotinfoid', ''),userid=serializer.data.get('userid', ''),is_deleted=0)
+                        # print("-------->>> ",slotdata.slottime)
+                        vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                            'userid', ''))
+                        finaldelveyorder=[]
+                        if vehicleobj:
+                            for vehcledata in vehicleobj:
+                                dictdata={}
+                                # print("------------>>>> ",vehcledata.id)
+                                vehicleobj = ordersdelivery.objects.filter(is_deleted=1,user_id=serializer.data.get(
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
+                                
+                                total_collected_amount=0.0
+                                total_collected_upi=0.0
+                                total_collected_cash=0.0
+                                # print("---------",vehicleobj)
+                                orderlist=[]
+                                for data in vehicleobj:
+                                    total_collected_amount+=data.upi+data.cash
+                                    total_collected_upi+=data.upi
+                                    total_collected_cash+=data.cash
+                                
+                                    deliveryorderdata={"ordersdeliveryid":data.id,
+                                        "order_id": data.order_id.id,
+                                        "vehicle_id": data.vehicle_id.id,
+                                        "vehiclename": data.vehicle_id.vehiclename,
+                                        "time_slot": data.time_slot,
+                                        'user_id': data.user_id.id,
+                                        "customer_name": data.customer_name,
+                                        "phone_number": data.phone_number,
+                                        'email': data.email,
+                                        'location_coordinates':data.location_coordinates,
+                                        'location_url': data.location_url,
+                                        'weight': data.weight,
+                                        'shipping_address': data.shipping_address ,
+                                        'collectedAmount': data.collectedAmount,
+                                        'invoice_total': data.invoice_total ,
+                                        'invoice_balance': data.invoice_balance ,
+                                        'invoice_number': data.invoice_number ,
+                                        'invoice_id': data.invoice_id ,
+                                        'status': data.status ,
+                                        'upi': data.upi ,
+                                        'cash': data.cash,
+                                        'other': data.other ,
+                                        'serialno': data.serialno ,
+                                        'reason': data.reason,
+                                        'upiamount':data.upi,
+                                        'totalamount':data.upi+data.cash+data.other
+                                        } 
+                                    orderlist.append(deliveryorderdata)
+                                dictdata.update({"vehicleid":vehcledata.id,"vehiclename":vehcledata.vehiclename,"orderdatabyvehicle":orderlist,'total_collected_amount': total_collected_amount,
+                                'total_collected_upi': total_collected_upi,
+                                'total_collected_cash': total_collected_cash})
+                                finaldelveyorder.append(dictdata)
+                                # finaldelveyorder+=vehicleorderlist
+                        if finaldelveyorder :
+                            # total_collected_amount =vehicleorderlist[0].get('totalamount')
+                            
+                            json_data = {
+                                'status_code': 200,
+                                'status': 'Success',
+                                'data': finaldelveyorder,
+                                'message': 'Order found'
+                            }
+                            return Response(json_data, status.HTTP_200_OK)
+                        else:
+                            print("================")
+                            json_data = {
+                                'status_code': 204,
+                                'status': 'Success',
+                                'message': 'Order not found'
+                            }
+                            return Response(json_data, status.HTTP_204_NO_CONTENT)
+                    else:
+                            print("================")
+                            json_data = {
+                                'status_code': 204,
+                                'status': 'Success',
+                                'message': 'Slot not found'
+                            }
+                            return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f"{err}",
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RootOptimizeOrderDeliveryList_f(APIView):
+    # permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = HistoryGetSlotListSerializer(data=request.data)
+            if serializer.is_valid():
+                # print("--------------",serializer.data.get('userid', ''))
+                vehicledata = User.objects.filter(id=serializer.data.get(
+                        'userid', '')).exists()
+                if vehicledata:
+                    checkslot = slotinfo.objects.filter(id=serializer.data.get('slotinfoid', ''),userid=serializer.data.get('userid', ''),is_deleted=0)
+                    if checkslot:
+                        slotdata = slotinfo.objects.get(id=serializer.data.get('slotinfoid', ''),userid=serializer.data.get('userid', ''),is_deleted=0)
+                        # print("-------->>> ",slotdata.slottime)
+                        vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                            'userid', ''))
+                        finaldelveyorder=[]
+                        if vehicleobj:
+                            for vehcledata in vehicleobj:
+                                dictdata={}
+                                # print("------------>>>> ",vehcledata.id)
+                                vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
+                                
+                                total_collected_amount=0.0
+                                total_collected_upi=0.0
+                                total_collected_cash=0.0
+                                # print("---------",vehicleobj)
+                                orderlist=[]
+                                for data in vehicleobj:
+                                    total_collected_amount+=data.upi+data.cash
+                                    total_collected_upi+=data.upi
+                                    total_collected_cash+=data.cash
+                                
+                                    deliveryorderdata={"ordersdeliveryid":data.id,
+                                        "order_id": data.order_id.id,
+                                        "vehicle_id": data.vehicle_id.id,
+                                        "vehiclename": data.vehicle_id.vehiclename,
+                                        "time_slot": data.time_slot,
+                                        'user_id': data.user_id.id,
+                                        "customer_name": data.customer_name,
+                                        "phone_number": data.phone_number,
+                                        'email': data.email,
+                                        'location_coordinates':data.location_coordinates,
+                                        'location_url': data.location_url,
+                                        'weight': data.weight,
+                                        'shipping_address': data.shipping_address ,
+                                        'collectedAmount': data.collectedAmount,
+                                        'invoice_total': data.invoice_total ,
+                                        'invoice_balance': data.invoice_balance ,
+                                        'invoice_number': data.invoice_number ,
+                                        'invoice_id': data.invoice_id ,
+                                        'status': data.status ,
+                                        'upi': data.upi ,
+                                        'cash': data.cash,
+                                        'other': data.other ,
+                                        'serialno': data.serialno ,
+                                        'reason': data.reason,
+                                        'upiamount':data.upi,
+                                        'totalamount':data.upi+data.cash+data.other
+                                        } 
+                                    orderlist.append(deliveryorderdata)
+                                dictdata.update({"vehicleid":vehcledata.id,"vehiclename":vehcledata.vehiclename,"data":orderlist})
+                                finaldelveyorder.append(dictdata)
+                                # finaldelveyorder+=vehicleorderlist
+                        if finaldelveyorder :
+                            # total_collected_amount =vehicleorderlist[0].get('totalamount')
+                            
+                            json_data = {
+                                'status_code': 200,
+                                'status': 'Success',
+                                'data': finaldelveyorder,
+                                'message': 'Order found'
+                            }
+                            return Response(json_data, status.HTTP_200_OK)
+                        else:
+                            print("================")
+                            json_data = {
+                                'status_code': 204,
+                                'status': 'Success',
+                                'message': 'Order not found'
+                            }
+                            return Response(json_data, status.HTTP_204_NO_CONTENT)
+                    else:
+                            print("================")
+                            json_data = {
+                                'status_code': 204,
+                                'status': 'Success',
+                                'message': 'Slot not found'
+                            }
+                            return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f"{err}",
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+

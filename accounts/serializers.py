@@ -84,7 +84,7 @@ class EditZohoAccountSerializer(serializers.Serializer):
         fields = '__all__'
 class GetZohoCredentialSerializer(serializers.Serializer):
 
-    zohoaccountid = serializers.CharField(required=True)
+    userid = serializers.CharField(required=True)
     class Meta:
         fields = '__all__'
 
@@ -196,4 +196,39 @@ class GetOrderListSerializer(serializers.Serializer):
         fields = '_all_'
 
 
+class AssignOrdertoVehicleSerializer(serializers.Serializer):
+    vehicleid = serializers.CharField(required=True)
+    orderid = serializers.CharField(required=True)
+    userid = serializers.CharField(required=True)
+    invoiceid = serializers.CharField(required=True)
+    slotid = serializers.CharField(required=True)
 
+    class Meta:
+        fields = '__all__'
+
+class EditAssignOrdertoVehicleSerializer(serializers.Serializer):
+    # ordersdeliveryid = serializers.CharField(required=True)
+    vehicleid = serializers.CharField(required=True)
+    orderid = serializers.CharField(required=True)
+    userid = serializers.CharField(required=True)
+    invoiceid = serializers.CharField(required=True)
+    slotid = serializers.CharField(required=True)
+
+    class Meta:
+        fields = '__all__'
+
+
+class AssignSerialNumberToOrdersSerializer(serializers.Serializer):
+    # ordersdeliveryid = serializers.CharField(required=True)
+    userid = serializers.CharField(required=True)
+    listofinvoiceid_serialno = serializers.CharField(required=True)
+    slotid = serializers.CharField(required=True)
+
+    class Meta:
+        fields = '__all__'
+    
+class HistoryGetSlotListSerializer(serializers.Serializer):
+    userid = serializers.CharField(required=True)
+    slotinfoid = serializers.CharField(required=True)
+    class Meta:
+        fields = '__all__'

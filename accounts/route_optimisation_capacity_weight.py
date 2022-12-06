@@ -111,7 +111,7 @@ def optimisation(matrix,location_weights,vehicle_wt_capacities,vehicle_order_cap
     search_parameters.local_search_metaheuristic = (
         routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH)
     # search_parameters.time_limit.FromSeconds(1)
-    search_parameters.time_limit.seconds = 2
+    search_parameters.time_limit.seconds = 10
     # Solve the problem.
     solution = routing.SolveWithParameters(search_parameters)
 
@@ -124,19 +124,21 @@ def optimisation(matrix,location_weights,vehicle_wt_capacities,vehicle_order_cap
         return {}
 
 
-def generate_optimised_way(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,location_names,due_amount,phone_number,invoice_number,  depot=0):
+def generate_optimised_way(coords,location_weights,vehicle_wt_capacities,vehicle_order_capcity,vehicle_names,vehicle_id,location_names,due_amount,phone_number,invoice_number,invoice_id,orderidlist,  depot=0):
     matrix=distance_matrix(coords).euclidean_matrix_raw()
     sol = optimisation(matrix,location_weights,vehicle_wt_capacities,vehicle_order_capcity,  depot=0)
-    # print(sol)
+    # print("\\\\\\\\ ",sol)
     if sol:
         
 
         names = location_names
         final_result = {}
         for key in sol[0].keys():
-            final_result[vehicle_names[key]] = [[names[i],due_amount[i],phone_number[i],invoice_number[i],coords[i]] for i in sol[0][key][0]]
-            final_result[vehicle_names[key]] = [final_result[vehicle_names[key]],
+            # print("keys = ",key)
+            final_result[vehicle_id[key]] = [[names[i],due_amount[i],phone_number[i],invoice_number[i],coords[i],invoice_id[i],vehicle_names[key],location_weights[i],orderidlist[i]] for i in sol[0][key][0]]
+            final_result[vehicle_id[key]] = [final_result[vehicle_id[key]],
                                                    [sol[0][key][1], sol[0][key][2], sol[0][key][3]]]
+            # print("what the fuck:   ",key,vehicle_id[key],final_result.keys())
         return final_result
     else:
         print('No Solution')
