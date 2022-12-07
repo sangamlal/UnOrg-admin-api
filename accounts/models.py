@@ -101,6 +101,7 @@ class ordersdelivery(models.Model):
     reason = models.CharField(max_length=200,null=True,blank=True)
     is_deleted = models.BooleanField(default=0)
     is_published = models.BooleanField(default=0)
+    is_manually_assigned=models.BooleanField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
     created_date = models.DateTimeField(auto_now=True)
     is_vehicle_update=models.BooleanField(default=0)

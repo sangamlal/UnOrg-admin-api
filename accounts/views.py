@@ -2974,8 +2974,8 @@ class AssignOrdertoVehicle_fun(APIView):
                                             updated_at=datetime.now(),
                                             created_date=checkorderinfo.created_date,
                                             is_vehicle_update=0,
-                                            is_priority_change=0
-
+                                            is_priority_change=0,
+                                            is_manually_assigned=1
                                         )
                                         orderdata.save()
                                         checkvehicle.is_vehicle_not_available=1
@@ -3703,3 +3703,113 @@ class RootOptimizeOrderDeliveryList_f(APIView):
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# class manally_assign_list(APIView):
+    permission_classes = [IsAuthenticated]
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetOrderbyfororderListSlotDetailSerializer(data=request.data)
+            if serializer.is_valid():
+                userid = serializer.data.get('userid')
+                datacheck=User.objects.filter(id=userid)
+                coordinate_type=serializer.data.get('coordinate_type')
+                #Check Data 
+                if datacheck:
+                    #Getting data of user
+                    # data = User.objects.get(id=userid)
+                    slotidid = serializer.data.get('slotid')
+                    data = slotinfo.objects.filter(id=slotidid)
+                    print("---------",data)
+                    if data:
+                        orderlist=[]
+                        print("++++++++++++++++++++")
+                        slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
+                        # print("888888888 ",slotdata)
+                        if slotdata:
+                            slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
+                            print("Inside the second elif")
+                            vehiclelist=vehicleinfo.objects.filter(userid=userid,is_deleted=0)
+                            averagevehicleweight=0
+                            for vehicle in vehiclelist:
+                                averagevehicleweight+=int(vehicle.weightcapacity)
+                                # print(len(vehiclelist),"-------2222------",vehicle.weightcapacity)
+                            average_vehicle_calculated_weight=averagevehicleweight/len(vehiclelist)
+                            # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
+                            orderwithoutcoordinates=[]
+                            if coordinate_type=='with-coordinate':
+                                # print("If condition")
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight)
+                            elif coordinate_type=='without-coordinate':
+                                # print("elif condition")
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=serializer.data.get('userid'),is_deleted=0)
+                            elif coordinate_type=='orderweight-exceed':
+                                #Getting Extra Order weight
+                               
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0)
+                            else:
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid,is_deleted=0)
+                            
+                            # print("5555555555   ",orderwithoutcoordinates)
+                            orderlist = [{"id": data.id, "shipping_address": data.shipping_address, 
+                            "invoice_id": data.invoice_id, 
+                            "vehicleid": f'{ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().vehicle_id.id if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else 0}' , 
+                            "serialno": f'{ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().serialno if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else 0}' , 
+                            "is_vehicle_update": ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().is_vehicle_update if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else False , 
+                            "is_priority_change": ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().is_priority_change if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else False , 
+                            "customer_name": data.customer_name, 
+                            "invoice_number": data.invoice_number, 
+                            "invoice_total": data.invoice_total, 
+                            "invoice_balance": data.invoice_balance, 
+                            "time_slot": data.time_slot, 
+                            "contactno": data.contactno, 
+                            "location_coordinates": data.location_coordinates, 
+                            "is_coordinated": data.is_coordinate, 
+                            "is_deleted": data.is_deleted, 
+                            "updated_at": data.updated_at, 
+                                            "customer_id": data.customer_id, "weight": data.weight, 'userid': data.userid.id,'created_date': data.created_date} for data in orderwithoutcoordinates]
+                            # print("---------",orderlist)
+                           
+                    
+                    
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': orderlist,
+                            'message': 'Item found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'data': '',
+                            'message': 'Slot not found'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': '',
+                        'message': 'Item not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f"{err}",
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
