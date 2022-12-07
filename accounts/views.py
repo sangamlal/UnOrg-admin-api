@@ -3718,83 +3718,104 @@ class manally_assign_list(APIView):
     # Handling Post Reuqest
     def post(self, request):
         try:
-            serializer = GetOrderbyfororderListSlotDetailSerializer(data=request.data)
+            serializer = HistoryGetSlotListSerializer(data=request.data)
             if serializer.is_valid():
-                userid = serializer.data.get('userid')
-                datacheck=User.objects.filter(id=userid)
-                coordinate_type=serializer.data.get('coordinate_type')
-                #Check Data 
-                if datacheck:
-                    #Getting data of user
-                    # data = User.objects.get(id=userid)
-                    slotidid = serializer.data.get('slotid')
-                    data = slotinfo.objects.filter(id=slotidid)
-                    print("---------",data)
-                    if data:
-                        orderlist=[]
-                        print("++++++++++++++++++++")
-                        slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
-                        # print("888888888 ",slotdata)
-                        if slotdata:
-                            slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
-                            print("Inside the second elif")
-                            vehiclelist=vehicleinfo.objects.filter(userid=userid,is_deleted=0)
-                            averagevehicleweight=0
-                            for vehicle in vehiclelist:
-                                averagevehicleweight+=int(vehicle.weightcapacity)
-                                # print(len(vehiclelist),"-------2222------",vehicle.weightcapacity)
-                            average_vehicle_calculated_weight=averagevehicleweight/len(vehiclelist)
-                            # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
-                            orderwithoutcoordinates=[]
-                            if coordinate_type=='manually':
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=serializer.data.get('userid'),is_deleted=0,is_manually_assigned=1)
-                            else:
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=serializer.data.get('userid'),is_deleted=0,is_manually_assigned=0)
-                            # print("5555555555   ",orderwithoutcoordinates)
-                            orderlist = [{"id": data.id, "shipping_address": data.shipping_address, 
-                            "invoice_id": data.invoice_id, 
-                            "vehicleid": f'{ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().vehicle_id.id if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else 0}' , 
-                            "serialno": f'{ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().serialno if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else 0}' , 
-                            "is_vehicle_update": ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().is_vehicle_update if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else False , 
-                            "is_priority_change": ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().is_priority_change if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else False , 
-                            "customer_name": data.customer_name, 
-                            "invoice_number": data.invoice_number, 
-                            "invoice_total": data.invoice_total, 
-                            "invoice_balance": data.invoice_balance, 
-                            "time_slot": data.time_slot, 
-                            "contactno": data.contactno, 
-                            "location_coordinates": data.location_coordinates, 
-                            "is_coordinated": data.is_coordinate, 
-                            "is_deleted": data.is_deleted, 
-                            "updated_at": data.updated_at, 
-                                            "customer_id": data.customer_id, "weight": data.weight, 'userid': data.userid.id,'created_date': data.created_date} for data in orderwithoutcoordinates]
-                            # print("---------",orderlist)
-                           
-                    
-                    
-                        json_data = {
-                            'status_code': 200,
-                            'status': 'Success',
-                            'data': orderlist,
-                            'message': 'Item found'
-                        }
-                        return Response(json_data, status.HTTP_200_OK)
+                vehicledata = User.objects.filter(id=serializer.data.get('userid', '')).exists()
+                if vehicledata:
+                    checkslot = slotinfo.objects.filter(id=serializer.data.get('slotinfoid', ''),userid=serializer.data.get('userid', ''),is_deleted=0)
+                    if checkslot:
+                        slotdata = slotinfo.objects.get(id=serializer.data.get('slotinfoid', ''),userid=serializer.data.get('userid', ''),is_deleted=0)
+                        # print("-------->>> ",slotdata.slottime)
+                        vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                            'userid', ''))
+                        finaldelveyorder=[]
+                        if vehicleobj:
+                            for vehcledata in vehicleobj:
+                                dictdata={}
+                                coordinate_type=serializer.data.get('coordinate_type')
+                                # print("------------>>>> ",vehcledata.id)
+                                if coordinate_type=='manually':
+                                    vehicleobj = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=1,user_id=serializer.data.get('userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
+                                else:
+                                    vehicleobj = ordersdelivery.objects.filter(is_manually_assigned=0,is_deleted=1,user_id=serializer.data.get(
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
+                                total_collected_amount=0.0
+                                total_collected_upi=0.0
+                                total_collected_cash=0.0
+                                # print("---------",vehicleobj)
+                                orderlist=[]
+                                for data in vehicleobj:
+                                    total_collected_amount+=data.upi+data.cash
+                                    total_collected_upi+=data.upi
+                                    total_collected_cash+=data.cash
+                                
+                                    deliveryorderdata={"ordersdeliveryid":data.id,
+                                        "order_id": data.order_id.id,
+                                        "vehicle_id": data.vehicle_id.id,
+                                        "vehiclename": data.vehicle_id.vehiclename,
+                                        "time_slot": data.time_slot,
+                                        'user_id': data.user_id.id,
+                                        "customer_name": data.customer_name,
+                                        "phone_number": data.phone_number,
+                                        'email': data.email,
+                                        'location_coordinates':data.location_coordinates,
+                                        'location_url': data.location_url,
+                                        'weight': data.weight,
+                                        'shipping_address': data.shipping_address ,
+                                        'collectedAmount': data.collectedAmount,
+                                        'invoice_total': data.invoice_total ,
+                                        'invoice_balance': data.invoice_balance ,
+                                        'invoice_number': data.invoice_number ,
+                                        'invoice_id': data.invoice_id ,
+                                        'status': data.status ,
+                                        'upi': data.upi ,
+                                        'cash': data.cash,
+                                        'other': data.other ,
+                                        'serialno': data.serialno ,
+                                        'reason': data.reason,
+                                        'upiamount':data.upi,
+                                        'totalamount':data.upi+data.cash+data.other
+                                        } 
+                                    orderlist.append(deliveryorderdata)
+                                dictdata.update({"vehicleid":vehcledata.id,"vehiclename":vehcledata.vehiclename,"orderdatabyvehicle":orderlist,'total_collected_amount': total_collected_amount,
+                                'total_collected_upi': total_collected_upi,
+                                'total_collected_cash': total_collected_cash})
+                                finaldelveyorder.append(dictdata)
+                                # finaldelveyorder+=vehicleorderlist
+                        if finaldelveyorder :
+                            # total_collected_amount =vehicleorderlist[0].get('totalamount')
+                            
+                            json_data = {
+                                'status_code': 200,
+                                'status': 'Success',
+                                'data': finaldelveyorder,
+                                'message': 'Order found'
+                            }
+                            return Response(json_data, status.HTTP_200_OK)
+                        else:
+                            print("================")
+                            json_data = {
+                                'status_code': 204,
+                                'status': 'Success',
+                                'message': 'Order not found'
+                            }
+                            return Response(json_data, status.HTTP_204_NO_CONTENT)
                     else:
-                        json_data = {
-                            'status_code': 204,
-                            'status': 'Success',
-                            'data': '',
-                            'message': 'Slot not found'
-                        }
-                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                            print("================")
+                            json_data = {
+                                'status_code': 204,
+                                'status': 'Success',
+                                'message': 'Slot not found'
+                            }
+                            return Response(json_data, status.HTTP_204_NO_CONTENT)
                 else:
+                    print("================")
                     json_data = {
                         'status_code': 204,
                         'status': 'Success',
-                        'data': '',
-                        'message': 'Item not found'
-                    }
-                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+                    'message': 'User not found'
+                }
+                return Response(json_data, status.HTTP_204_NO_CONTENT)
             else:
                 print("I am api called-------")
                 json_data = {

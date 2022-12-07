@@ -230,6 +230,7 @@ class AssignSerialNumberToOrdersSerializer(serializers.Serializer):
 class HistoryGetSlotListSerializer(serializers.Serializer):
     userid = serializers.CharField(required=True)
     slotinfoid = serializers.CharField(required=True)
+    coordinate_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     class Meta:
         fields = '__all__'
 
