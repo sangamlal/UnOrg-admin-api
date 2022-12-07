@@ -1992,6 +1992,15 @@ class RootOptimazationAPI(APIView):
                             vehicleweightlist=[int(data.weightcapacity) for data in vehicledata]
                             vehiclemaxorderlist=[int(data.maxorders) for data in vehicledata]
                             vehicledatainfo=[]
+                            if vehicledata:
+                                pass
+                            else:
+                                json_data = {
+                                'status_code': 500,
+                                'status': 'Success',
+                                'message': 'Vehicle not available'
+                                }
+                                return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
                             # print("---Vehicle id list : ",vehicleidlist)
                             # print("---Vehicle name list : ",vehiclenamelist)
                             # print("---Vehicle weight list : ",len(vehicleweightlist))
