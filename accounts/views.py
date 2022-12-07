@@ -1986,7 +1986,7 @@ class RootOptimazationAPI(APIView):
                             deletewaredata=ordersdelivery.objects.filter(user_id=userid,time_slot=slotinfodata.slottime)
                             if deletewaredata:
                                 deletewaredata.update(is_deleted=1)
-                            vehicledata = vehicleinfo.objects.filter(userid=userid,is_deleted=0)
+                            vehicledata = vehicleinfo.objects.filter(userid=userid,is_deleted=0,is_vehicle_not_available=0)
                             vehiclenamelist=[data.vehiclename for data in vehicledata]
                             vehicleidlist=[data.id for data in vehicledata]
                             vehicleweightlist=[int(data.weightcapacity) for data in vehicledata]
@@ -2088,7 +2088,7 @@ class RootOptimazationAPI(APIView):
                                 # print("Hey I am data of one vehicle : ===========  ",assignorder)
                                 vehicle_id = assignorder.get("vehicle_id")
                                 print("Vehicle Id is : ",vehicle_id)
-                                serial_num=0
+                                serial_num=1
                                 for orderdata in assignorder.get("data"):
                                     invoice_id=orderdata.get("invoice_id")
                                     orderinfodata= orderinfo.objects.get(userid=userid,invoice_id=invoice_id,is_deleted=0) if orderinfo.objects.filter(userid=userid,invoice_id=invoice_id,is_deleted=0).exists() else 0
@@ -2317,12 +2317,16 @@ class GetOrderwithoutCoordinatesList(APIView):
                                 #Getting Extra Order weight
                                
                                 orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0)
- 
+                            else:
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid,is_deleted=0)
+                            
                             # print("5555555555   ",orderwithoutcoordinates)
                             orderlist = [{"id": data.id, "shipping_address": data.shipping_address, 
                             "invoice_id": data.invoice_id, 
                             "vehicleid": f'{ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().vehicle_id.id if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else 0}' , 
                             "serialno": f'{ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().serialno if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else 0}' , 
+                            "is_vehicle_update": ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().is_vehicle_update if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else False , 
+                            "is_priority_change": ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).first().is_priority_change if ordersdelivery.objects.filter(order_id=data.id,invoice_id=data.invoice_id,time_slot=data.time_slot,user_id=userid,is_deleted=0).exists() else False , 
                             "customer_name": data.customer_name, 
                             "invoice_number": data.invoice_number, 
                             "invoice_total": data.invoice_total, 
@@ -2453,6 +2457,11 @@ class orders_delivery(APIView):
                 ordersdelivery_id = serializer_data.data.get('id')
                 ordersdelivery_obj = ordersdelivery.objects.filter(id = ordersdelivery_id)
                 if vehicle_obj and order_obj and ordersdelivery_obj:
+                    is_vehicle_free = ordersdelivery.objects.filter(vehicle_id=vehicle_id,status='Pending')
+                    if not len(is_vehicle_free):
+                        obj = vehicleinfo.objects.get(vehicle_id=vehicle_id)
+                        obj.is_vehicle_not_available=0
+                        obj.save()
                     ordersdelivery_obj.update(
                         order_id=order_obj, 
                         vehicle_id=vehicle_obj,
@@ -2898,97 +2907,88 @@ class AssignOrdertoVehicle_fun(APIView):
     def post(self, request):
         try:
             # print("iiiiiiiii ",request.id)
-            serializer = AssignOrdertoVehicleSerializer(data=request.data)
+            serializer = NewAssignOrdertoVehicleSerializer(data=request.data)
             if serializer.is_valid():
-                vehicleid=serializer.data.get('vehicleid')
-                orderid=serializer.data.get('orderid')
-                userid=serializer.data.get('userid')
-                invoiceid=serializer.data.get('invoiceid')
-                slotid=serializer.data.get('slotid')
-                userinfo = User.objects.filter(id=userid)
-                # userinfo = User.objects.filter(id=userid)
-                if userinfo:
-                    userinfo = User.objects.get(id=userid)
-                    checkvehicle = vehicleinfo.objects.filter(id=vehicleid , userid=userid).first()
-                    # print("--------------",userinfo.get("username"))
-                    if checkvehicle:
-                        checkslotinfo = slotinfo.objects.filter(id=slotid , userid=userid).first()
-                        if checkslotinfo:
-                            checkorderinfo = orderinfo.objects.filter(id=orderid ,invoice_id=invoiceid, userid=userid).first()
-                            if checkorderinfo:
-                                print("2222222222222       00000")
-                                checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invoiceid,vehicle_id=vehicleid,user_id=userid,is_deleted=0)
-                                # print("--------",checkorderdelivery)
-                                if not checkorderdelivery:
-                                    orderdata=ordersdelivery.objects.create(
-                                        order_id=checkorderinfo,
-                                        vehicle_id=checkvehicle,
-                                        time_slot=checkslotinfo.slottime,
-                                        user_id=userinfo,
-                                        customer_name=checkorderinfo.customer_name,
-                                        phone_number=checkorderinfo.contactno,
-                                        email='',
-                                        location_coordinates=checkorderinfo.location_coordinates,
-                                        location_url='',
-                                        weight=checkorderinfo.weight,
-                                        shipping_address=checkorderinfo.shipping_address,
-                                        collectedAmount=0,
-                                        invoice_total=checkorderinfo.invoice_total,
-                                        invoice_balance=checkorderinfo.invoice_balance,
-                                        invoice_number=checkorderinfo.invoice_number,
-                                        invoice_id=checkorderinfo.invoice_id,
-                                        status='Pending',
-                                        upi=0,
-                                        cash=0,
-                                        other=0,
-                                        reason='',
-                                        is_deleted=0,
-                                        is_published=0,
-                                        updated_at=datetime.now(),
-                                        created_date=checkorderinfo.created_date
-                                    )
-                                    orderdata.save()
-                                    json_data = {
-                                        'status_code': 201,
-                                        'status': 'Success',
-                                        'message': 'Order successfully assigned to vehicle '
-                                    }
-                                    return Response(json_data, status.HTTP_201_CREATED)
-                                else:
-                                    json_data = {
-                                        'status_code': 204,
-                                        'status': 'Success',
-                                        'message': 'Order already exist for this vehicle'
-                                    }
-                                    return Response(json_data, status.HTTP_204_NO_CONTENT)
-                            else:
-                                json_data = {
-                                    'status_code': 204,
-                                    'status': 'Success',
-                                    'message': 'Order not found for this userid'
-                                }
-                                return Response(json_data, status.HTTP_204_NO_CONTENT)
-                        else:
-                            json_data = {
-                                'status_code': 204,
-                                'status': 'Success',
-                                'message': 'Slot not found for this userid'
-                            }
-                            return Response(json_data, status.HTTP_204_NO_CONTENT)
-                    else:
-                        json_data = {
-                            'status_code': 204,
-                            'status': 'Success',
-                            'message': 'Vehicle not found for this user'
-                        }
-                        return Response(json_data, status.HTTP_204_NO_CONTENT)
-                else:
-                    json_data = {
-                        'status_code': 204,
-                        'status': 'Success',
-                        'message': 'User not found'
-                    }
-                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+                assignorderlist=serializer.data.get('assignorderlist')
+                assignorderlistconvertedlist=json.loads(assignorderlist)
+                message="Order not assigned to vehicle."
+                serialcount=1
+                previousvehicle=''
+                nextvehicle=''
+                for vehicle_order_obj in assignorderlistconvertedlist:
+                    vehicleid= vehicle_order_obj.get("vehicleid")
+                    orderid=vehicle_order_obj.get("orderid")
+                    userid=vehicle_order_obj.get("userid")
+                    invoiceid=vehicle_order_obj.get("invoiceid")
+                    slotid=vehicle_order_obj.get("slotid")
+                    nextvehicle=vehicle_order_obj.get("vehicleid")
+                    if previousvehicle!=nextvehicle:
+                        previousvehicle=nextvehicle
+                        serialcount=1
+
+                    
+                    userinfo = User.objects.filter(id=userid).exists()
+                    # userinfo = User.objects.filter(id=userid)
+                    if userinfo:
+                        userinfo = User.objects.get(id=userid)
+                        print("-------UserInfo -------- ",userinfo)
+                        checkvehicle = vehicleinfo.objects.get(id=vehicleid , userid=userid)
+                        # print("--------------",userinfo.get("username"))
+                        if checkvehicle:
+                            print("-------checkvehicle -------- ",checkvehicle)
+                            checkslotinfo = slotinfo.objects.get(id=slotid , userid=userid)
+                            if checkslotinfo:
+                                print("-------checkslotinfo -------- ",checkslotinfo)
+                                checkorderinfo = orderinfo.objects.get(id=orderid ,invoice_id=invoiceid, userid=userid)
+                                if checkorderinfo:
+                                    print("2222222222222       00000",checkorderinfo)
+                                    checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invoiceid,user_id=userid,is_deleted=0)
+                                    print("--------",checkorderdelivery)
+                                    if not checkorderdelivery:
+
+                                        orderdata=ordersdelivery.objects.create(
+                                            order_id=checkorderinfo,
+                                            vehicle_id=checkvehicle,
+                                            time_slot=checkslotinfo.slottime,
+                                            user_id=userinfo,
+                                            customer_name=checkorderinfo.customer_name,
+                                            phone_number=checkorderinfo.contactno,
+                                            email='',
+                                            location_coordinates=checkorderinfo.location_coordinates,
+                                            location_url='',
+                                            weight=checkorderinfo.weight,
+                                            shipping_address=checkorderinfo.shipping_address,
+                                            collectedAmount=0,
+                                            invoice_total=checkorderinfo.invoice_total,
+                                            invoice_balance=checkorderinfo.invoice_balance,
+                                            invoice_number=checkorderinfo.invoice_number,
+                                            invoice_id=checkorderinfo.invoice_id,
+                                            status='Pending',
+                                            serialno=serialcount,
+                                            upi=0,
+                                            cash=0,
+                                            other=0,
+                                            reason='',
+                                            is_deleted=0,
+                                            is_published=0,
+                                            updated_at=datetime.now(),
+                                            created_date=checkorderinfo.created_date,
+                                            is_vehicle_update=0,
+                                            is_priority_change=0
+
+                                        )
+                                        orderdata.save()
+                                        checkvehicle.is_vehicle_not_available=1
+                                        checkvehicle.save()
+                                        message="Order assigned to vehicle."
+                                        serialcount+=1
+
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Success',
+                    'message': message
+                }
+                return Response(json_data, status.HTTP_200_OK)
             else:
                 json_data = {
                     'status_code': 300,
@@ -3010,74 +3010,51 @@ class AssignOrdertoVehicle_fun(APIView):
     def patch(self, request):
         try:
             # print("iiiiiiiii ",request.id)
-            serializer = EditAssignOrdertoVehicleSerializer(data=request.data)
+            serializer = NewAssignOrdertoVehicleSerializer(data=request.data)
             if serializer.is_valid():
-                # ordersdeliveryid=serializer.data.get('ordersdeliveryid')
-                vehicleid=serializer.data.get('vehicleid')
-                orderid=serializer.data.get('orderid')
-                userid=serializer.data.get('userid')
-                invoiceid=serializer.data.get('invoiceid')
-                slotid=serializer.data.get('slotid')
-                userinfo = User.objects.filter(id=userid)
-                # userinfo = User.objects.filter(id=userid)
-                if userinfo:
-                    userinfo = User.objects.get(id=userid)
-                    checkvehicle = vehicleinfo.objects.filter(id=vehicleid , userid=userid).first()
-                    # print("--------------",userinfo.get("username"))
-                    if checkvehicle:
-                        checkslotinfo = slotinfo.objects.filter(id=slotid , userid=userid).first()
-                        if checkslotinfo:
-                            checkorderinfo = orderinfo.objects.filter(id=orderid ,invoice_id=invoiceid, userid=userid).first()
-                            if checkorderinfo:
-                                print("2222222222222       00000")
-                                checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invoiceid,time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0)
-                                # print("--------",checkorderdelivery)
-                                if checkorderdelivery:
-                                    orderdata=checkorderdelivery.update(
-                                        vehicle_id=checkvehicle,
-                                        updated_at=timezone.now(),
-                                    )
-                                    json_data = {
-                                        'status_code': 200,
-                                        'status': 'Success',
-                                        'message': 'Order Update Successfully'
-                                    }
-                                    return Response(json_data, status.HTTP_200_OK)
-                                else:
-                                    json_data = {
-                                        'status_code': 204,
-                                        'status': 'Success',
-                                        'message': 'Order not found'
-                                    }
-                                    return Response(json_data, status.HTTP_204_NO_CONTENT)
-                            else:
-                                json_data = {
-                                    'status_code': 204,
-                                    'status': 'Success',
-                                    'message': 'Order not found for this userid'
-                                }
-                                return Response(json_data, status.HTTP_204_NO_CONTENT)
-                        else:
-                            json_data = {
-                                'status_code': 204,
-                                'status': 'Success',
-                                'message': 'Slot not found for this userid'
-                            }
-                            return Response(json_data, status.HTTP_204_NO_CONTENT)
-                    else:
-                        json_data = {
-                            'status_code': 204,
-                            'status': 'Success',
-                            'message': 'Vehicle not found for this user'
-                        }
-                        return Response(json_data, status.HTTP_204_NO_CONTENT)
-                else:
-                    json_data = {
-                        'status_code': 204,
-                        'status': 'Success',
-                        'message': 'User not found'
-                    }
-                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+                assignorderlist=serializer.data.get('assignorderlist')
+                assignorderlistconvertedlist=json.loads(assignorderlist)
+                message="Order not change"
+                for vehicle_order_obj in assignorderlistconvertedlist:
+                    vehicleid= vehicle_order_obj.get("vehicleid")
+                    orderid=vehicle_order_obj.get("orderid")
+                    userid=vehicle_order_obj.get("userid")
+                    invoiceid=vehicle_order_obj.get("invoiceid")
+                    slotid=vehicle_order_obj.get("slotid")
+                    
+                    userinfo = User.objects.filter(id=userid).exists()
+                    # userinfo = User.objects.filter(id=userid)
+                    if userinfo:
+                        userinfo = User.objects.get(id=userid)
+                        print("-------UserInfo -------- ",userinfo)
+                        checkvehicle = vehicleinfo.objects.get(id=vehicleid , userid=userid)
+                        # print("--------------",userinfo.get("username"))
+                        if checkvehicle:
+                            print("-------checkvehicle -------- ",checkvehicle)
+                            checkslotinfo = slotinfo.objects.get(id=slotid , userid=userid)
+                            if checkslotinfo:
+                                print("-------checkslotinfo -------- ",checkslotinfo)
+                                checkorderinfo = orderinfo.objects.get(id=orderid ,invoice_id=invoiceid, userid=userid)
+                                if checkorderinfo:
+                                    print("2222222222222       00000",checkorderinfo)
+                                    checkorderdelivery=ordersdelivery.objects.get(invoice_id=invoiceid,user_id=userid,is_deleted=0)
+                                    print("--------",checkorderdelivery)
+                                    if  checkorderdelivery:
+                                        checkorderdelivery.vehicle_id=checkvehicle
+                                        checkorderdelivery.is_vehicle_update=0 if checkorderdelivery.vehicle_id==checkvehicle.id else 1
+                                        checkorderdelivery.updated_at=timezone.now()
+                                        checkorderdelivery.save()
+                                        checkvehicle.is_vehicle_not_available=1
+                                        checkvehicle.save()
+                                        message="Order  changed"
+                                        
+                     
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Success',
+                    'message': message
+                }
+                return Response(json_data, status.HTTP_200_OK)
             else:
                 json_data = {
                     'status_code': 300,
@@ -3367,15 +3344,70 @@ class AssignSerialNumberToOrders_fun(APIView):
                             newserialnumberwithinvoiceid = json.loads(listofinvoiceid_serialno)
                             message="Order not update successfully"
                             for invdata in newserialnumberwithinvoiceid:
-                                # print(invdata.get("serialno"),"-----invoice id----",invdata.get("invoice_id"))
-                            
+                                # # print(invdata.get("serialno"),"-----invoice id----",invdata.get("invoice_id"))
+                                # checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invdata.get("invoice_id"),time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0)
+                                # print("--------",checkorderdelivery)
+                                # if checkorderdelivery:
+                                #     serialno=invdata.get("serialno")
+                                #     is_priority_change=1
+                                #     vehicleid=invdata.get("vehicleid")
+                                #     total_serialno = ordersdelivery.objects.filter(vehicle_id=vehicleid,time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0,is_vehicle_update=1)
+                                #     print("Updated Vehicle data : ",total_serialno)
+                                #     for ndata in total_serialno:
+                                #         count=0
+                                #         olddataobj =ordersdelivery.objects.filter(vehicle_id=vehicleid,time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0,is_vehicle_update=0)
+                                #         for olddata in olddataobj:
+                                #             print("llddddddddddddddddd      : ",len(olddataobj))
+                                #             if ndata.serialno==olddata.serialno:
+                                #                 while len(olddataobj)>count:
+                                #                     # print("sllwhile loop--------------")
+                                #                     olddata.serialno=olddata.serialno+1
+                                #                     count+=1
                                 checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invdata.get("invoice_id"),time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0)
                                 print("--------",checkorderdelivery)
                                 if checkorderdelivery:
+                                    serialno=invdata.get("serialno")
+                                    is_priority_change=1
+                                    vehicle_id=invdata.get("vehicleid")
+                                    maxi = ordersdelivery.objects.filter(vehicle_id=vehicle_id,time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0).count()
+                                    mini = int(serialno)
+                                    data_obj = ordersdelivery.objects.filter(vehicle_id=vehicle_id,serialno__range=[mini, maxi],time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0)
+                                    for obj in data_obj:
+                                        is_priority_change=1
+                                        obj.is_priority_change=is_priority_change
+                                        obj.serialno=obj.serialno+1
+                                        obj.save()
                                     orderdata=checkorderdelivery.update(
-                                        serialno=invdata.get("serialno"),
+                                        serialno=serialno,
                                         updated_at=timezone.now(),
+                                        is_priority_change=is_priority_change
                                     )
+                                    message="Order update successfully"
+                                                   
+
+                                    # number = int(serialno)
+                                    # if total_serialno>=number:
+                                    #     while number<=total_serialno:
+                           
+                                    #         obj = ordersdelivery.objects.get(vehicle_id=vehicleid,invoice_id=invdata.get("invoice_id"), serialno=total_serialno,time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0)
+                                    #         obj.is_priority_change=is_priority_change
+                                    #         obj.serialno=obj.serialno+1
+                                    #         obj.save()
+                                    #         total_serialno=total_serialno-1
+                                            
+                                    orderdata=checkorderdelivery.update(
+                                        serialno=serialno,
+                                        updated_at=timezone.now(),
+                                        is_priority_change=is_priority_change
+                                    )
+                            
+                                # checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invdata.get("invoice_id"),time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0)
+                                # print("--------",checkorderdelivery)
+                                # if checkorderdelivery:
+                                #     orderdata=checkorderdelivery.update(
+                                #         serialno=invdata.get("serialno"),
+                                #         updated_at=timezone.now(),
+                                #     )
                                     message="Order update successfully"
                             if message=="Order update successfully":
                                 json_data = {
@@ -3586,6 +3618,7 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                                     deliveryorderdata={"ordersdeliveryid":data.id,
                                         "order_id": data.order_id.id,
                                         "vehicle_id": data.vehicle_id.id,
+                                        "is_vehicle_not_available": data.vehicle_id.is_vehicle_not_available,
                                         "vehiclename": data.vehicle_id.vehiclename,
                                         "time_slot": data.time_slot,
                                         'user_id': data.user_id.id,
@@ -3605,6 +3638,9 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                                         'upi': data.upi ,
                                         'cash': data.cash,
                                         'other': data.other ,
+                                        'other': data.other ,
+                                        'is_vehicle_update': data.is_vehicle_update ,
+                                        'is_priority_change': data.is_priority_change ,
                                         'serialno': data.serialno ,
                                         'reason': data.reason,
                                         'upiamount':data.upi,

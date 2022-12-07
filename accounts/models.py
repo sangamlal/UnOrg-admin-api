@@ -39,6 +39,7 @@ class vehicleinfo(models.Model):
     phone=models.CharField(max_length=400)
     is_deleted=models.BooleanField(default=0)
     created_at=models.DateTimeField(auto_now=True)
+    is_vehicle_not_available=models.BooleanField(default=0)
 class slotinfo(models.Model):
     userid =models.ForeignKey(User, on_delete=models.CASCADE)
     slottime=models.CharField(max_length=100)
@@ -102,3 +103,5 @@ class ordersdelivery(models.Model):
     is_published = models.BooleanField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
     created_date = models.DateTimeField(auto_now=True)
+    is_vehicle_update=models.BooleanField(default=0)
+    is_priority_change=models.BooleanField(default=0)
