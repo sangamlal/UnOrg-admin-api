@@ -2328,6 +2328,15 @@ class GetOrderwithoutCoordinatesList(APIView):
                                 # print(len(vehiclelist),"-------2222------",vehicle.weightcapacity)
                             average_vehicle_calculated_weight=averagevehicleweight/len(vehiclelist)
                             # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime)
+                            data_pop = ordersdelivery.objects.filter(time_slot=slotinfodata.slottime,user_id=serializer.data.get('userid'))
+                            invoice_id=[]
+                            for data in data_pop:
+                                try:
+                                    invoice_id.append(data.invoice_id)
+                                    print("gotcha")
+                                except Exception as e:
+                                    print(e)
+                                    pass
                             orderwithoutcoordinates=[]
                             if coordinate_type=='with-coordinate':
                                 # print("If condition")
@@ -2340,7 +2349,7 @@ class GetOrderwithoutCoordinatesList(APIView):
                                
                                 orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0)
                             else:
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid,is_deleted=0)
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             
                             # print("5555555555   ",orderwithoutcoordinates)
                             orderlist = [{"id": data.id, "shipping_address": data.shipping_address, 
