@@ -1887,14 +1887,26 @@ class GetOrderbySlotDetail(APIView):
                             print(len(vehiclelist),"-------Total vehicle weight------",totalvehicleweight)
                             average_vehicle_calculated_weight=totalvehicleweight/len(vehiclelist)
                             # vehiclelist=orderinfo.objects.filter(userid=userid)
+                            # ____Exclude Those order that are not assgined
+                            data_pop = ordersdelivery.objects.filter(time_slot=slotinfodata.slottime,user_id=serializer.data.get('userid'))
+                            # order_with_coordinate = list(order_with_coordinate)
+                            invoice_id=[]
+                            for data in data_pop:
+                                try:
+                                    invoice_id.append(data.invoice_id)
+                                    print("gotcha")
+                                except Exception as e:
+                                    print(e)
+                                    pass
+                            
                             
                             slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)#userid=userid
-                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid)
-                            orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid)
-                            orderwithcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight)
+                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid).exclude(invoice_id__in=invoice_id)
+                            orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid).exclude(invoice_id__in=invoice_id)
+                            orderwithcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
                             orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
                             #Getting Extra Order weight
-                            orderwithoutexceeded = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0)
+                            orderwithoutexceeded = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             # print("----Exceeded Order List >>>> ----- ",orderwithoutexceeded)
                             allorderlist = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0)
                             total_orders_weight=0
