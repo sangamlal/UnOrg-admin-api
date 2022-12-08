@@ -1887,6 +1887,7 @@ class GetOrderbySlotDetail(APIView):
                             print(len(vehiclelist),"-------Total vehicle weight------",totalvehicleweight)
                             average_vehicle_calculated_weight=totalvehicleweight/len(vehiclelist)
                             # vehiclelist=orderinfo.objects.filter(userid=userid)
+                            slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)#userid=userid
                             # ____Exclude Those order that are not assgined
                             data_pop = ordersdelivery.objects.filter(time_slot=slotinfodata.slottime,user_id=serializer.data.get('userid'))
                             # order_with_coordinate = list(order_with_coordinate)
@@ -1900,7 +1901,6 @@ class GetOrderbySlotDetail(APIView):
                                     pass
                             
                             
-                            slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)#userid=userid
                             totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid).exclude(invoice_id__in=invoice_id)
                             orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid).exclude(invoice_id__in=invoice_id)
                             orderwithcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
@@ -3136,7 +3136,7 @@ class AllocatedToVehicleDeliveryOrderList_f(APIView):
                             dictdata={}
                             # print("------------>>>> ",vehcledata.id)
                             vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
-                                'userid', ''),vehicle_id=vehcledata.id).order_by('serialno')
+                                'userid', '',is_published=1),vehicle_id=vehcledata.id).order_by('serialno')
                             
                             total_collected_amount=0.0
                             total_collected_upi=0.0
@@ -3534,7 +3534,7 @@ class HistoryAllocatedToVehicleDeliveryOrderList_f(APIView):
                                 dictdata={}
                                 # print("------------>>>> ",vehcledata.id)
                                 vehicleobj = ordersdelivery.objects.filter(is_deleted=1,user_id=serializer.data.get(
-                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=1).order_by('serialno')
                                 
                                 total_collected_amount=0.0
                                 total_collected_upi=0.0
