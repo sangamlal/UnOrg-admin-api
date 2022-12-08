@@ -1906,6 +1906,7 @@ class GetOrderbySlotDetail(APIView):
                             orderwithcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
                             orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
                             #Getting Extra Order weight
+                            manual_count = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).count()
                             orderwithoutexceeded = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             # print("----Exceeded Order List >>>> ----- ",orderwithoutexceeded)
                             allorderlist = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0)
@@ -1919,6 +1920,7 @@ class GetOrderbySlotDetail(APIView):
                                 'orderwithoutcoordinates':len(orderwithoutcoordinates),
                                 'orderwithcoordinats':len(orderwithcoordinates),
                                 'orderweightexceededvehicleweight':len(orderwithoutexceeded),
+                                'manual_count':manual_count
                             }
                             print(average_vehicle_calculated_weight," Total Orders weight",total_orders_weight)
                             if total_orders_weight>totalvehicleweight:
@@ -2360,6 +2362,8 @@ class GetOrderwithoutCoordinatesList(APIView):
                                 #Getting Extra Order weight
                                
                                 orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
+                            elif coordinate_type=='orderweight-exceed':
+                                orderwithoutcoordinates = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime)
                             else:
                                 orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             
