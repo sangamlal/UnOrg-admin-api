@@ -2367,6 +2367,7 @@ class GetOrderwithoutCoordinatesList(APIView):
                             else:
                                 orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             
+
                             # print("5555555555   ",orderwithoutcoordinates)
                             orderlist = [{"id": data.id, "shipping_address": data.shipping_address, 
                             "invoice_id": data.invoice_id, 
@@ -2379,9 +2380,8 @@ class GetOrderwithoutCoordinatesList(APIView):
                             "invoice_total": data.invoice_total, 
                             "invoice_balance": data.invoice_balance, 
                             "time_slot": data.time_slot, 
-                            "contactno": data.contactno, 
-                            "location_coordinates": data.location_coordinates, 
-                            "is_coordinated": data.is_coordinate, 
+                            "contactno": data.phone_number if coordinate_type=='manually' else data.contactno, 
+                            "location_coordinates": data.location_coordinates,
                             "is_deleted": data.is_deleted, 
                             "updated_at": data.updated_at, 
                                             "customer_id": data.customer_id, "weight": data.weight, 'userid': data.userid.id,'created_date': data.created_date} for data in orderwithoutcoordinates]
