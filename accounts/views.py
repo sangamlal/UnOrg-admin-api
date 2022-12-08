@@ -2384,7 +2384,7 @@ class GetOrderwithoutCoordinatesList(APIView):
                             "location_coordinates": data.location_coordinates,
                             "is_deleted": data.is_deleted, 
                             "updated_at": data.updated_at, 
-                                            "customer_id": data.customer_id, "weight": data.weight, 'userid': data.userid.id,'created_date': data.created_date} for data in orderwithoutcoordinates]
+                                            "weight": data.weight, 'userid':data.user_id.id if coordinate_type=='manually' else data.userid.id,'created_date': data.created_date} for data in orderwithoutcoordinates]
                             # print("---------",orderlist)
                            
                     
