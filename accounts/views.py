@@ -1901,7 +1901,7 @@ class GetOrderbySlotDetail(APIView):
                                     pass
                             
                             
-                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid)
+                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid).exclude(invoice_id__in=invoice_id)
                             orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid).exclude(invoice_id__in=invoice_id)
                             orderwithcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
                             orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
@@ -1916,7 +1916,7 @@ class GetOrderbySlotDetail(APIView):
                             print("Averate orders weight------>  ",total_orders_weight)
                             # print("----Exceeded Order List >>>> ----- ",len(orderwithoutexceeded))
                             vehicledata={
-                                'totalorders':len(totalorders),
+                                'totalorders':int(len(totalorders))+int(manual_count),
                                 'orderwithoutcoordinates':len(orderwithoutcoordinates),
                                 'orderwithcoordinats':len(orderwithcoordinates),
                                 'orderweightexceededvehicleweight':len(orderwithoutexceeded),
