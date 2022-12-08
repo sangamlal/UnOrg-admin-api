@@ -2352,14 +2352,14 @@ class GetOrderwithoutCoordinatesList(APIView):
                             orderwithoutcoordinates=[]
                             if coordinate_type=='with-coordinate':
                                 # print("If condition")
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight)
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
                             elif coordinate_type=='without-coordinate':
                                 # print("elif condition")
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=serializer.data.get('userid'),is_deleted=0)
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=serializer.data.get('userid'),is_deleted=0).exclude(invoice_id__in=invoice_id)
                             elif coordinate_type=='orderweight-exceed':
                                 #Getting Extra Order weight
                                
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0)
+                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             else:
                                 orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             
@@ -3655,7 +3655,7 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                                 dictdata={}
                                 # print("------------>>>> ",vehcledata.id)
                                 vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
-                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=0).order_by('serialno')
                                 
                                 total_collected_amount=0.0
                                 total_collected_upi=0.0
