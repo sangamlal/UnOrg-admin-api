@@ -1995,7 +1995,7 @@ class RootOptimazationAPI(APIView):
                         slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
                         if slotdata:
                             slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
-                            deletewaredata=ordersdelivery.objects.filter(user_id=userid,time_slot=slotinfodata.slottime)
+                            deletewaredata=ordersdelivery.objects.filter(user_id=userid,time_slot=slotinfodata.slottime,is_manually_assigned=0)
                             if deletewaredata:
                                 deletewaredata.update(is_deleted=1)
                             vehicledata = vehicleinfo.objects.filter(userid=userid,is_deleted=0,is_vehicle_not_available=0)
@@ -3695,6 +3695,7 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                                         'is_priority_change': data.is_priority_change ,
                                         'serialno': data.serialno ,
                                         'is_published': data.is_published ,
+                                        'is_manually_assigned': data.is_manually_assigned ,
                                         'reason': data.reason,
                                         'upiamount':data.upi,
                                         'totalamount':data.upi+data.cash+data.other
