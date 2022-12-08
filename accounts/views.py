@@ -1048,9 +1048,14 @@ class VehicleList_fun(APIView):
                 vehicledata = User.objects.filter(id=serializer.data.get(
                         'userid', ''))
                 if vehicledata:
-
-                    vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                    data = ordersdelivery.objects.filter(is_manually_assigned=0).values_list('vehicle_id')
+                    from django.db.models import Q
+                    vehicleobj = vehicleinfo.objects.filter(~Q(id__in=data) ,is_deleted=0,userid=serializer.data.get(
                         'userid', ''),is_vehicle_not_available=0)
+                    from django.db.models import OuterRef, Subquery
+                    # ordersdelivery = ordersdelivery.objects.exclude(is_manually_assigned=0,vehicle_id=vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                                        # 'userid', ''),is_vehicle_not_available=0))
+                    
                     # print("=============",vehicleobj)
                     vehiclelist=[]
                     for data in vehicleobj:
