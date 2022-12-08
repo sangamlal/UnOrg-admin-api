@@ -3136,7 +3136,7 @@ class AllocatedToVehicleDeliveryOrderList_f(APIView):
                             dictdata={}
                             # print("------------>>>> ",vehcledata.id)
                             vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
-                                'userid', '',is_published=1),vehicle_id=vehcledata.id).order_by('serialno')
+                                'userid', ''),is_published=1,vehicle_id=vehcledata.id).order_by('serialno')
                             
                             total_collected_amount=0.0
                             total_collected_upi=0.0
