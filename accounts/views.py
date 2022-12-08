@@ -3005,7 +3005,7 @@ class AssignOrdertoVehicle_fun(APIView):
                                             is_published=0,
                                             updated_at=datetime.now(),
                                             created_date=checkorderinfo.created_date,
-                                            is_vehicle_update=0,
+                                            is_vehicle_update=1,
                                             is_priority_change=0,
                                             is_manually_assigned=1
                                         )
