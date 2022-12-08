@@ -2014,8 +2014,19 @@ class RootOptimazationAPI(APIView):
                             # print("55555555      ",slotinfodata.userid.longitude,slotinfodata.userid.latitude)
                             # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=serializer.data.get('userid'),is_deleted=0)
                             # order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,location_coordinates__isnull=False,is_coordinate=1)#Add in condition ,created_date=datetime.now()
-                            order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight)#Add in condition ,created_date=datetime.now()
-                            # print("----order_with_coordinate length : ",len(order_with_coordinate))
+                            # order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight)#Add in condition ,created_date=datetime.now()
+                            data_pop = ordersdelivery.objects.filter(time_slot=slotinfodata.slottime,user_id=serializer.data.get('userid'))
+                            # order_with_coordinate = list(order_with_coordinate)
+                            invoice_id=[]
+                            for data in data_pop:
+                                try:
+                                    invoice_id.append(data.invoice_id)
+                                    print("gotcha")
+                                except Exception as e:
+                                    print(e)
+                                    pass
+                            order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
+                            print("----order_with_coordinate length : ",len(order_with_coordinate))
                             # orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
                             # vehicledata={
                             #     'totalorders':len(totalorders),
@@ -2140,6 +2151,8 @@ class RootOptimazationAPI(APIView):
                                                 created_date=datetime.now()
                                             )
                                             orderdata.save()
+                                            vehicleobj.is_vehicle_not_available=1
+                                            vehicleobj.save()
                                         else:
                                             print("Else condition----------- ")
                                         
@@ -2466,11 +2479,7 @@ class orders_delivery(APIView):
                 ordersdelivery_id = serializer_data.data.get('id')
                 ordersdelivery_obj = ordersdelivery.objects.filter(id = ordersdelivery_id)
                 if vehicle_obj and order_obj and ordersdelivery_obj:
-                    is_vehicle_free = ordersdelivery.objects.filter(vehicle_id=vehicle_id,status='Pending')
-                    if not len(is_vehicle_free):
-                        obj = vehicleinfo.objects.get(vehicle_id=vehicle_id)
-                        obj.is_vehicle_not_available=0
-                        obj.save()
+                   
                     ordersdelivery_obj.update(
                         order_id=order_obj, 
                         vehicle_id=vehicle_obj,
@@ -2481,6 +2490,11 @@ class orders_delivery(APIView):
                         other=serializer_data.validated_data.get('other', ''),
                         reason=serializer_data.validated_data.get('reason', ''), 
                     )
+                    is_vehicle_free = ordersdelivery.objects.filter(vehicle_id=vehicle_id,status='Pending')
+                    if not len(is_vehicle_free):
+                        obj = vehicleinfo.objects.get(id=vehicle_id)
+                        obj.is_vehicle_not_available=0
+                        obj.save()
                 else:
                     status_code=404
                     status="Fail"
