@@ -3674,6 +3674,7 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                                         'is_vehicle_update': data.is_vehicle_update ,
                                         'is_priority_change': data.is_priority_change ,
                                         'serialno': data.serialno ,
+                                        'is_published': data.is_published ,
                                         'reason': data.reason,
                                         'upiamount':data.upi,
                                         'totalamount':data.upi+data.cash+data.other
