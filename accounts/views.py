@@ -3005,7 +3005,7 @@ class AssignOrdertoVehicle_fun(APIView):
                                             is_published=0,
                                             updated_at=datetime.now(),
                                             created_date=checkorderinfo.created_date,
-                                            is_vehicle_update=0,
+                                            is_vehicle_update=1,
                                             is_priority_change=0,
                                             is_manually_assigned=1
                                         )
@@ -3682,6 +3682,7 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                                         'is_vehicle_update': data.is_vehicle_update ,
                                         'is_priority_change': data.is_priority_change ,
                                         'serialno': data.serialno ,
+                                        'is_published': data.is_published ,
                                         'reason': data.reason,
                                         'upiamount':data.upi,
                                         'totalamount':data.upi+data.cash+data.other
