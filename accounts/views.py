@@ -3375,6 +3375,14 @@ class AssignSerialNumberToOrders_fun(APIView):
                         if checkslotinfo:
                             newserialnumberwithinvoiceid = json.loads(listofinvoiceid_serialno)
                             message="Order not update successfully"
+                            from operator import itemgetter
+                            import operator
+                            from operator import itemgetter
+                            for data in newserialnumberwithinvoiceid:
+                                data["serialno"]=int(data.get("serialno"))
+                            x = newserialnumberwithinvoiceid
+                            test = sorted(x, key=itemgetter('serialno'))
+                            newserialnumberwithinvoiceid = test
                             for invdata in newserialnumberwithinvoiceid:
                                 # # print(invdata.get("serialno"),"-----invoice id----",invdata.get("invoice_id"))
                                 # checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invdata.get("invoice_id"),time_slot=checkslotinfo.slottime,user_id=userid,is_deleted=0)
