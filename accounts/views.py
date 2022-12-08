@@ -1901,7 +1901,7 @@ class GetOrderbySlotDetail(APIView):
                                     pass
                             
                             
-                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid).exclude(invoice_id__in=invoice_id)
+                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid)
                             orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid).exclude(invoice_id__in=invoice_id)
                             orderwithcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
                             orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
