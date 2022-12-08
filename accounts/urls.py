@@ -47,5 +47,6 @@ urlpatterns = [
     path('historydeliveryorderlist',views.HistoryAllocatedToVehicleDeliveryOrderList_f.as_view()),
     path('rootoptimizeorderdeliverylist',views.RootOptimizeOrderDeliveryList_f.as_view()),
     path('manally_assign_list',views.manally_assign_list.as_view()),
+    path('allvehiclelist',views.AllVehicleList_fun.as_view()),
     # path('newfetchinvoicedata',views.NewFetchInvoiceData.as_view()),
 ]

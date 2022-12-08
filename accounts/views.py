@@ -1050,7 +1050,7 @@ class VehicleList_fun(APIView):
                 if vehicledata:
 
                     vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
-                        'userid', ''))
+                        'userid', ''),is_vehicle_not_available=0)
                     # print("=============",vehicleobj)
                     vehiclelist=[]
                     for data in vehicleobj:
@@ -3875,6 +3875,97 @@ class manally_assign_list(APIView):
                 'status_code': 500,
                 'status': 'Failed',
                 'error': f"{err}",
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+
+class AllVehicleList_fun(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = GetVehicleListSerializer(data=request.data)
+            if serializer.is_valid():
+                print("--------------",serializer.data.get('userid', ''))
+                vehicledata = User.objects.filter(id=serializer.data.get(
+                        'userid', ''))
+                if vehicledata:
+
+                    vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                        'userid', ''))
+                    # print("=============",vehicleobj)
+                    vehiclelist=[]
+                    for data in vehicleobj:
+                        totalvehicle_remaining_weight=0
+                        for delivery_order in ordersdelivery.objects.filter(vehicle_id=data.id,user_id=data.userid.id,is_deleted=0):
+                            totalvehicle_remaining_weight+=delivery_order.weight
+                        datadict={
+                            "id": data.id,
+                            "vehiclename": data.vehiclename,
+                            "phone": data.phone,
+                            "maxorders": data.maxorders,
+                            "weightcapacity": data.weightcapacity,
+                            'userid': data.userid.id,
+                            'created_at': data.created_at,
+                            'password': data.password,
+                            'vehicle_remaining_weight': int(data.weightcapacity)-totalvehicle_remaining_weight
+                        }
+                        vehiclelist.append(datadict)
+
+                    
+                    # vehiclelist = [{"id": data.id,
+                    # "vehiclename": data.vehiclename,
+                    # "phone": data.phone,
+                    # "remainingweight": [ delivery_order.weight for delivery_order in ordersdelivery.objects.filter(vehicle_id=data.id,user_id=data.userid.id,is_deleted=0)], 
+
+                    # "maxorders": data.maxorders,
+                    # "weightcapacity": data.weightcapacity,
+                    # 'userid': data.userid.id,
+                    # 'created_at': data.created_at,
+                    # 'password': data.password}
+                    #  for data in vehicleobj]
+                    # print("---------",vehiclelist)
+                    if vehicleobj :
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': vehiclelist,
+                            'message': 'Vehicle found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        print("================")
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'message': 'Vehicle not found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
