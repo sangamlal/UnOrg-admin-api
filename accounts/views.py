@@ -3774,15 +3774,17 @@ class manally_assign_list(APIView):
                         vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                             'userid', ''))
                         finaldelveyorder=[]
+                        count = 0
                         if vehicleobj:
                             for vehcledata in vehicleobj:
                                 dictdata={}
                                 coordinate_type=serializer.data.get('coordinate_type')
                                 # print("------------>>>> ",vehcledata.id)
                                 if coordinate_type=='manually':
-                                    vehicleobj = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=1,user_id=serializer.data.get('userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
+                                    vehicleobj = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
+                                    count = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).count()
                                 else:
-                                    vehicleobj = ordersdelivery.objects.filter(is_manually_assigned=0,is_deleted=1,user_id=serializer.data.get(
+                                    vehicleobj = ordersdelivery.objects.filter(is_manually_assigned=0,is_deleted=0,user_id=serializer.data.get(
                                     'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
                                 total_collected_amount=0.0
                                 total_collected_upi=0.0
@@ -3834,6 +3836,7 @@ class manally_assign_list(APIView):
                                 'status_code': 200,
                                 'status': 'Success',
                                 'data': finaldelveyorder,
+                                'Total count':count,
                                 'message': 'Order found'
                             }
                             return Response(json_data, status.HTTP_200_OK)
