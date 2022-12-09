@@ -1048,10 +1048,15 @@ class VehicleList_fun(APIView):
                 vehicledata = User.objects.filter(id=serializer.data.get(
                         'userid', ''))
                 if vehicledata:
-                    data = ordersdelivery.objects.filter(is_manually_assigned=0).values_list('vehicle_id')
-                    from django.db.models import Q
-                    vehicleobj = vehicleinfo.objects.filter(~Q(id__in=data) ,is_deleted=0,userid=serializer.data.get(
-                        'userid', ''),is_vehicle_not_available=0)
+                    data = ordersdelivery.objects.filter(is_manually_assigned=0,is_deleted=0,user_id=serializer.data.get('userid', ''))
+                    list_of_data=[]
+                    for d in data:
+                        print(d)
+                        d_value=d.vehicle_id_id
+                        if d_value not in list_of_data:
+                            list_of_data.append(d_value)
+                    vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                        'userid', ''),is_vehicle_not_available=0).exclude(id__in=list_of_data)
                     from django.db.models import OuterRef, Subquery
                     # ordersdelivery = ordersdelivery.objects.exclude(is_manually_assigned=0,vehicle_id=vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                                         # 'userid', ''),is_vehicle_not_available=0))
@@ -3659,12 +3664,19 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                         vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                             'userid', ''))
                         finaldelveyorder=[]
+                        data = vehicleinfo.objects.filter(is_vehicle_not_available=0,is_deleted=0,userid=serializer.data.get('userid', ''))
+                        list_of_data=[]
+                        for d in data:
+                            print(d)
+                            d_value=d.vehicle_id_id
+                            if d_value not in list_of_data:
+                                list_of_data.append(d_value)
                         if vehicleobj:
                             for vehcledata in vehicleobj:
                                 dictdata={}
                                 # print("------------>>>> ",vehcledata.id)
                                 vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
-                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=0).order_by('serialno')
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=0).exclude(list_of_data).order_by('serialno')
                                 
                                 total_collected_amount=0.0
                                 total_collected_upi=0.0
