@@ -1048,7 +1048,7 @@ class VehicleList_fun(APIView):
                 vehicledata = User.objects.filter(id=serializer.data.get(
                         'userid', ''))
                 if vehicledata:
-                    data = ordersdelivery.objects.filter(is_manually_assigned=0,is_deleted=0,user_id=serializer.data.get('userid', ''))
+                    data = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''))
                     list_of_data=[]
                     for d in data:
                         print(d)
@@ -1056,7 +1056,7 @@ class VehicleList_fun(APIView):
                         if d_value not in list_of_data:
                             list_of_data.append(d_value)
                     vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
-                        'userid', ''),is_vehicle_not_available=0).exclude(id__in=list_of_data)
+                        'userid', '')).exclude(id__in=list_of_data)
                     from django.db.models import OuterRef, Subquery
                     # ordersdelivery = ordersdelivery.objects.exclude(is_manually_assigned=0,vehicle_id=vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                                         # 'userid', ''),is_vehicle_not_available=0))
@@ -1911,10 +1911,9 @@ class GetOrderbySlotDetail(APIView):
                                     pass
                             
                             
-                            totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid).exclude(invoice_id__in=invoice_id)
+                            # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid).exclude(invoice_id__in=invoice_id)
                             orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid).exclude(invoice_id__in=invoice_id)
                             orderwithcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
-                            orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
                             #Getting Extra Order weight
                             manual_count = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime).count()
                             orderwithoutexceeded = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
@@ -1924,6 +1923,7 @@ class GetOrderbySlotDetail(APIView):
                             for orderdata in allorderlist:
                                 total_orders_weight+=orderdata.weight
                             print("Averate orders weight------>  ",total_orders_weight)
+                            totalorders=len(orderwithoutcoordinates)+len(orderwithcoordinates)+len(orderwithoutexceeded)+manual_count
                             # print("----Exceeded Order List >>>> ----- ",len(orderwithoutexceeded))
                             vehicledata={
                                 'totalorders':int(len(totalorders))+int(manual_count),
@@ -2785,18 +2785,13 @@ class NewFetchInvoiceData(APIView):
                         if response.status_code == 200:
                             data1 = response.json()
                             invoices=data1.get("invoices")
-                            
                             if invoices:
-                                print("0000000000      ",len(invoices))
-                                
                                 orderupdatemessage="All invoices already exist"
                                 countdata=0
                                 for invoice in invoices:
                                     # Getting Invoice data
                                     itemslist_of_invoice = req.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
-                                    print("mmmmm : ...........>>>> ",countdata)
                                     if itemslist_of_invoice.status_code == 200:
-                                        print("If Condition 7777777777777  ::::: ",countdata)
                                         cf_location_coordinates=itemslist_of_invoice.json().get("invoice").get("cf_location_coordinates",0)
                                         cf_location_url=itemslist_of_invoice.json().get("invoice").get("cf_location_url",0)
                                         invoicecreateddatetime=invoice.get('date','')
@@ -3656,6 +3651,8 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                 # print("--------------",serializer.data.get('userid', ''))
                 vehicledata = User.objects.filter(id=serializer.data.get(
                         'userid', '')).exists()
+                type = serializer.data.get('type', '')
+
                 if vehicledata:
                     checkslot = slotinfo.objects.filter(id=serializer.data.get('slotinfoid', ''),userid=serializer.data.get('userid', ''),is_deleted=0)
                     if checkslot:
@@ -3664,19 +3661,26 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                         vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                             'userid', ''))
                         finaldelveyorder=[]
-                        data = vehicleinfo.objects.filter(is_vehicle_not_available=0,is_deleted=0,userid=serializer.data.get('userid', ''))
+                        data = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''))
                         list_of_data=[]
                         for d in data:
                             print(d)
                             d_value=d.vehicle_id_id
                             if d_value not in list_of_data:
                                 list_of_data.append(d_value)
+                        if type == "ro":
+                            vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get('userid', '')).exclude(id__in=list_of_data)
                         if vehicleobj:
                             for vehcledata in vehicleobj:
                                 dictdata={}
                                 # print("------------>>>> ",vehcledata.id)
-                                vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
-                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=0).exclude(list_of_data).order_by('serialno')
+                                if type=='ro':
+                                    vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=0).exclude(vehicle_id__in=list_of_data).order_by('serialno')
+                                
+                                elif type=='manual':
+                                    vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=0).order_by('serialno')
                                 
                                 total_collected_amount=0.0
                                 total_collected_upi=0.0
