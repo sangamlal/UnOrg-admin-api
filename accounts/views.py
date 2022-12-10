@@ -4034,3 +4034,23 @@ class is_vehicle_free(APIView):
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class clear_data(APIView):
+    def post(self,request):
+        try:
+            data = request.data
+            id = data['id']
+            print(id)
+            id = int(id)
+            a=vehicleinfo.objects.filter(userid=27)
+            print(a)
+            a.update(is_vehicle_not_available=0)
+            print(a)   
+            a=ordersdelivery.objects.filter(user_id=27)
+            print(a) 
+            a.delete()
+            print(a)
+            return Response("Success", status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response("Fail", status.HTTP_500_INTERNAL_SERVER_ERROR)
