@@ -1926,7 +1926,7 @@ class GetOrderbySlotDetail(APIView):
                             totalorders=len(orderwithoutcoordinates)+len(orderwithcoordinates)+len(orderwithoutexceeded)+manual_count
                             # print("----Exceeded Order List >>>> ----- ",len(orderwithoutexceeded))
                             vehicledata={
-                                'totalorders':totalorders,
+                                'totalorders':int(len(totalorders))+int(manual_count),
                                 'orderwithoutcoordinates':len(orderwithoutcoordinates),
                                 'orderwithcoordinats':len(orderwithcoordinates),
                                 'orderweightexceededvehicleweight':len(orderwithoutexceeded),
