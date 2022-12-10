@@ -2525,11 +2525,6 @@ class orders_delivery(APIView):
                         other=serializer_data.validated_data.get('other', ''),
                         reason=serializer_data.validated_data.get('reason', ''), 
                     )
-                    is_vehicle_free = ordersdelivery.objects.filter(vehicle_id=vehicle_id,status='Pending')
-                    if not len(is_vehicle_free):
-                        obj = vehicleinfo.objects.get(id=vehicle_id)
-                        obj.is_vehicle_not_available=0
-                        obj.save()
                 else:
                     status_code=404
                     status="Fail"
@@ -2963,11 +2958,15 @@ class AssignOrdertoVehicle_fun(APIView):
             serializer = NewAssignOrdertoVehicleSerializer(data=request.data)
             if serializer.is_valid():
                 assignorderlist=serializer.data.get('assignorderlist')
+                type=serializer.data.get('type')
                 assignorderlistconvertedlist=json.loads(assignorderlist)
                 message="Order not assigned to vehicle."
                 serialcount=1
                 previousvehicle=''
                 nextvehicle=''
+                is_set_manual=0
+                if type=='manual':
+                    is_set_manual=1
                 for vehicle_order_obj in assignorderlistconvertedlist:
                     vehicleid= vehicle_order_obj.get("vehicleid")
                     orderid=vehicle_order_obj.get("orderid")
@@ -3028,7 +3027,7 @@ class AssignOrdertoVehicle_fun(APIView):
                                             created_date=checkorderinfo.created_date,
                                             is_vehicle_update=1,
                                             is_priority_change=0,
-                                            is_manually_assigned=1
+                                            is_manually_assigned=is_set_manual
                                         )
                                         orderdata.save()
                                         checkvehicle.is_vehicle_not_available=1
@@ -3992,6 +3991,46 @@ class AllVehicleList_fun(APIView):
                 'status_code': 500,
                 'status': 'Failed',
                 'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class is_vehicle_free(APIView):
+    def post(self,request):
+        try:
+            serializer_data  = is_vehicle_free_serializers(data=request.data)
+            if serializer_data.is_valid():
+                vehicle_id = serializer_data.data.get('vehicle_id')
+                type = serializer_data.data.get('type')
+                is_vehicle_free = ordersdelivery.objects.filter(vehicle_id=vehicle_id,status='Pending')
+                if not len(is_vehicle_free) and type=='Free':
+                    obj = vehicleinfo.objects.get(id=vehicle_id)
+                    obj.is_vehicle_not_available=0
+                    obj.save()
+                    status_code=200
+                    status="Success"
+                    message = "You are free to pick new orders"
+                else:
+                    status_code=404
+                    status="Fail"
+                    message = "Dilever all order first"
+            else:
+                    status_code=300
+                    status="Fail"
+                    message = "data is Not valid"
+            json_data = {
+                'status_code': status_code,
+                'status': status,
+                'messgae': message,
+                }
+            return Response(json_data, status  = status_code)   
+
+        except Exception as e:
+            print(e)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{e}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)

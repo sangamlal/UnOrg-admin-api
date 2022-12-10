@@ -239,5 +239,10 @@ class HistoryGetSlotListSerializer(serializers.Serializer):
 class NewAssignOrdertoVehicleSerializer(serializers.Serializer):
     # ordersdeliveryid = serializers.CharField(required=True)
     assignorderlist = serializers.CharField(required=True)
+    type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     class Meta:
         fields = '__all__'
+
+class is_vehicle_free_serializers(serializers.Serializer):
+    vehicle_id = serializers.CharField(required = True)
+    type = serializers.CharField(required = True)
