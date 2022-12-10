@@ -49,6 +49,6 @@ urlpatterns = [
     path('manally_assign_list',views.manally_assign_list.as_view()),
     path('allvehiclelist',views.AllVehicleList_fun.as_view()),
     path('is_vehicle_free',views.is_vehicle_free.as_view()),
-
+    path('clear_data',views.clear_data.as_view()),
     # path('newfetchinvoicedata',views.NewFetchInvoiceData.as_view()),
 ]
