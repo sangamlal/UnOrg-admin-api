@@ -75,6 +75,7 @@ class orderinfo(models.Model):
     is_deleted=models.BooleanField(default=0)
     updated_at=models.DateTimeField(auto_now=True)
     created_date=models.DateTimeField(auto_now=True)
+    zoho_updated_time = models.CharField(max_length=50)
 
 class ordersdelivery(models.Model):
     order_id = models.ForeignKey(orderinfo,on_delete = models.CASCADE)

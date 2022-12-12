@@ -1910,15 +1910,16 @@ class GetOrderbySlotDetail(APIView):
                                     print(e)
                                     pass
                             
-                            
+                            created_date = datetime.now().date()
+                            created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
                             # totalorders = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid).exclude(invoice_id__in=invoice_id)
-                            orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid).exclude(invoice_id__in=invoice_id)
-                            orderwithcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
+                            orderwithoutcoordinates = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid).exclude(invoice_id__in=invoice_id)
+                            orderwithcoordinates = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
                             #Getting Extra Order weight
-                            manual_count = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime).count()
-                            orderwithoutexceeded = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
+                            manual_count = ordersdelivery.objects.filter(created_date__date = created_date,is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime).count()
+                            orderwithoutexceeded = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             # print("----Exceeded Order List >>>> ----- ",orderwithoutexceeded)
-                            allorderlist = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0)
+                            allorderlist = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0)
                             total_orders_weight=0
                             for orderdata in allorderlist:
                                 total_orders_weight+=orderdata.weight
@@ -1926,7 +1927,7 @@ class GetOrderbySlotDetail(APIView):
                             totalorders=len(orderwithoutcoordinates)+len(orderwithcoordinates)+len(orderwithoutexceeded)+manual_count
                             # print("----Exceeded Order List >>>> ----- ",len(orderwithoutexceeded))
                             vehicledata={
-                                'totalorders':int(len(totalorders))+int(manual_count),
+                                'totalorders':totalorders,
                                 'orderwithoutcoordinates':len(orderwithoutcoordinates),
                                 'orderwithcoordinats':len(orderwithcoordinates),
                                 'orderweightexceededvehicleweight':len(orderwithoutexceeded),
@@ -2362,20 +2363,24 @@ class GetOrderwithoutCoordinatesList(APIView):
                                     print(e)
                                     pass
                             orderwithoutcoordinates=[]
+                            created_date = datetime.now().date()
+                            created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
+                            # start = datetime.date.today()
+                            # end = start + datetime.timedelta(days=1)
                             if coordinate_type=='with-coordinate':
                                 # print("If condition")
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
+                                orderwithoutcoordinates = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
                             elif coordinate_type=='without-coordinate':
                                 # print("elif condition")
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=0,userid=serializer.data.get('userid'),is_deleted=0).exclude(invoice_id__in=invoice_id)
+                                orderwithoutcoordinates = orderinfo.objects.filter(created_date__date=created_date,time_slot=slotinfodata.slottime,is_coordinate=0,userid=serializer.data.get('userid'),is_deleted=0).exclude(invoice_id__in=invoice_id)
                             elif coordinate_type=='orderweight-exceed':
                                 #Getting Extra Order weight
                                
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
+                                orderwithoutcoordinates = orderinfo.objects.filter(created_date__date=created_date,ime_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             elif coordinate_type=='manually':
-                                orderwithoutcoordinates = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime)
+                                orderwithoutcoordinates = ordersdelivery.objects.filter(created_date__date=created_date,is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime)
                             else:
-                                orderwithoutcoordinates = orderinfo.objects.filter(time_slot=slotinfodata.slottime,userid=userid,is_deleted=0).exclude(invoice_id__in=invoice_id)
+                                orderwithoutcoordinates = orderinfo.objects.filter(created_date__date=created_date,time_slot=slotinfodata.slottime,userid=userid,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             
 
                             # print("5555555555   ",orderwithoutcoordinates)
@@ -2770,7 +2775,6 @@ class NewFetchInvoiceData(APIView):
                         accesstoken = data['access_token']
                         # print("-------",accesstoken)
                         currentdate=datetime.now().date()
-                        currentdate='2022-11-20'
                         headers = {
                         'Content-Type':'application/json',
                         'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
@@ -2785,6 +2789,18 @@ class NewFetchInvoiceData(APIView):
                                 countdata=0
                                 for invoice in invoices:
                                     # Getting Invoice data
+                                    zoho_last_modified_time = invoice.get('last_modified_time')
+                                    list =datetime.strptime(zoho_last_modified_time, "%Y-%m-%dT%H:%M:%S+%f")    
+                                    zoho_last_modified_time = list.strftime("%H:%M:%S")
+                                    orderobj_updated=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
+                                    if orderobj_updated:
+                                        obj = orderinfo.objects.get(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
+                                        previous_updated_time = obj.zoho_updated_time
+                                        if previous_updated_time !='':
+                                            # previous_updated_time = previous_updated_time.time()
+                                            # previous_updated_time = previous_updated_time.strftime("%H:%M:%S")
+                                            if previous_updated_time>=zoho_last_modified_time:
+                                                continue
                                     itemslist_of_invoice = req.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
                                     if itemslist_of_invoice.status_code == 200:
                                         cf_location_coordinates=itemslist_of_invoice.json().get("invoice").get("cf_location_coordinates",0)
@@ -2808,11 +2824,14 @@ class NewFetchInvoiceData(APIView):
                                         #Check Invoice id exits for particular user or not
                                         orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
                                         # print("---------------",invoice.get("cf_location_coordinate"))
+                                        bool_value=0
+                                        if checkcoordinate(s=itemslist_of_invoice.json().get("invoice").get("cf_location_coordinates")):
+                                            bool_value=1
+                                        from pytz import timezone 
+                                        time_now =  datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
+                                        str_time_now = str(time_now)
                                         if not orderobj:
                                             #Check Is Quardinates available
-                                            bool_value=0
-                                            if checkcoordinate(s=itemslist_of_invoice.json().get("invoice").get("cf_location_coordinates")):
-                                                bool_value=1
                                             orderdata=orderinfo.objects.create(
                                                 userid=userobj,
                                                 shipping_address=invoice.get("shipping_address").get("address",''),
@@ -2829,14 +2848,30 @@ class NewFetchInvoiceData(APIView):
                                                 location_url=cf_location_url,
                                                 is_coordinate=bool_value,
                                                 is_deleted=0,
-                                                updated_at=datetime.now(),
+                                                updated_at = time_now,
                                                 created_date=invoicecreateddatetime,
+                                                zoho_updated_time = zoho_last_modified_time
                                             )
                                             orderdata.save()
                                             orderupdatemessage="Invoices updated"
                                         else:
                                             print("Else Condition ----------->>>>  ::::: ",countdata)
-                                            orderobj.update(updated_at=timezone.now())
+                                            orderobj.update(                                                
+                                                    shipping_address=invoice.get("shipping_address").get("address",''),
+                                                    customer_id=invoice.get("customer_id",''),
+                                                    weight=totalitemwaight,
+                                                    customer_name=invoice.get("customer_name",''),
+                                                    invoice_number=invoice.get("invoice_number",''),
+                                                    invoice_total=invoice.get("total",''),
+                                                    invoice_balance=invoice.get("balance",''),
+                                                    time_slot=invoice.get("cf_delivery_slots",''),
+                                                    contactno=cusomercontact,
+                                                    location_coordinates=cf_location_coordinates,
+                                                    location_url=cf_location_url,
+                                                    is_coordinate=bool_value,
+                                                    updated_at=time_now,
+                                                    created_date=invoicecreateddatetime,
+                                                    zoho_updated_time = zoho_last_modified_time)
                                         # print("@@@@@@@@@@@@@ 22222222")
                                         countdata+=1
                                         
@@ -3244,7 +3279,9 @@ class PublishOrderDeliveryList_fun(APIView):
             datacheck=User.objects.filter(id=request.data.get("userid") if request.data.get("userid") else 0)
             #Check Data 
             if datacheck:
-                checkorderdata=ordersdelivery.objects.filter(user_id=request.data.get("userid") ,is_deleted=0)
+                created_date = datetime.now().date()
+                created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
+                checkorderdata=ordersdelivery.objects.filter(created_date__date = created_date,user_id=request.data.get("userid") ,is_deleted=0)
                 if checkorderdata:
                     #Getting data of user
                     checkupdate=checkorderdata.update(
@@ -3802,11 +3839,13 @@ class manally_assign_list(APIView):
                             for vehcledata in vehicleobj:
                                 dictdata={}
                                 coordinate_type=serializer.data.get('coordinate_type')
+                                created_date = datetime.now().date()
+                                created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
                                 # print("------------>>>> ",vehcledata.id)
                                 if coordinate_type=='manually':
-                                    vehicleobj = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=1,user_id=serializer.data.get('userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
+                                    vehicleobj = ordersdelivery.objects.filter(created_date__date = created_date,is_manually_assigned=1,is_deleted=1,user_id=serializer.data.get('userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
                                 else:
-                                    vehicleobj = ordersdelivery.objects.filter(is_manually_assigned=0,is_deleted=1,user_id=serializer.data.get(
+                                    vehicleobj = ordersdelivery.objects.filter(created_date__date = created_date,is_manually_assigned=0,is_deleted=1,user_id=serializer.data.get(
                                     'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime).order_by('serialno')
                                 total_collected_amount=0.0
                                 total_collected_upi=0.0
@@ -4040,17 +4079,27 @@ class clear_data(APIView):
         try:
             data = request.data
             id = data['id']
+            request_url = request.build_absolute_uri()
+            slice=2
+            if 'https' in request_url:
+                return Response("fail",status.HTTP_400_BAD_REQUEST)
+            port = request_url.split(':')[slice]
+            port = port[0:4]
+            print(port)
             print(id)
-            id = int(id)
-            a=vehicleinfo.objects.filter(userid=27)
-            print(a)
-            a.update(is_vehicle_not_available=0)
-            print(a)   
-            a=ordersdelivery.objects.filter(user_id=27)
-            print(a) 
-            a.delete()
-            print(a)
-            return Response("Success", status.HTTP_200_OK)
+            if port=='8000':
+                id = int(id)
+                a=vehicleinfo.objects.filter(userid=27)
+                print(a)
+                a.update(is_vehicle_not_available=0)
+                print(a)   
+                a=ordersdelivery.objects.filter(user_id=27)
+                print(a) 
+                a.delete()
+                print(a)
+                return Response("Success", status.HTTP_200_OK)
+            else:
+                return Response("Fail", status.HTTP_400_BAD_REQUEST )
         except Exception as e:
             print(e)
             return Response("Fail", status.HTTP_500_INTERNAL_SERVER_ERROR)
