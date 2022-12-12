@@ -2004,6 +2004,8 @@ class RootOptimazationAPI(APIView):
                     slotidid = serializer.data.get('slotid')
                     data = slotinfo.objects.filter(id=slotidid)
                     if data:
+                        created_date = datetime.now().date()
+                        created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
                       
                         slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
                         if slotdata:
@@ -2050,7 +2052,7 @@ class RootOptimazationAPI(APIView):
                                 except Exception as e:
                                     print(e)
                                     pass
-                            order_with_coordinate = orderinfo.objects.filter(time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
+                            order_with_coordinate = orderinfo.objects.filter(created_date__date=created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=serializer.data.get('userid'),is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
                             print("----order_with_coordinate length : ",len(order_with_coordinate))
                             # orderwithcoordinats=len(totalorders)-len(orderwithoutcoordinates)
                             # vehicledata={
