@@ -2899,7 +2899,7 @@ class GetLastInvoiceUpdatedDate_fun(APIView):
     def post(self, request):
         try:
             # print("--------------")
-            mycheckdata=orderinfo.objects.filter(userid=request.data.get("userid") if request.data.get("userid") else 0).first()
+            mycheckdata=orderinfo.objects.filter(userid=request.data.get("userid") if request.data.get("userid") else 0).last()
             #Check Data 
             if mycheckdata:
                 # print("--------------->>>>>>>   ",mycheckdata.updated_at.strftime("%H:%M:%S"))
