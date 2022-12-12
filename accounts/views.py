@@ -3172,6 +3172,8 @@ class AllocatedToVehicleDeliveryOrderList_f(APIView):
                 # print("--------------",serializer.data.get('userid', ''))
                 vehicledata = User.objects.filter(id=serializer.data.get(
                         'userid', '')).exists()
+                created_date = datetime.now().date()
+                created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
                 if vehicledata:
                     vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                         'userid', ''))
@@ -3180,7 +3182,7 @@ class AllocatedToVehicleDeliveryOrderList_f(APIView):
                         for vehcledata in vehicleobj:
                             dictdata={}
                             # print("------------>>>> ",vehcledata.id)
-                            vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
+                            vehicleobj = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=0,user_id=serializer.data.get(
                                 'userid', ''),is_published=1,vehicle_id=vehcledata.id).order_by('serialno')
                             
                             total_collected_amount=0.0
@@ -4157,13 +4159,13 @@ class AddBranchesAPI(APIView):
                             # print("dkkkkkkk : ",data)
                             # print(";;;;;;; ",data)
                             for d in data.get("branches"):
-                                # print("Branches list data : ",d)
+                                print("Branches list data : ",d.get('branch_id'))
                                 message='All branches already exist'
                                 # check item id
-                                already=iteminfo.objects.filter(zoho_item_id=d.get('item_id', ''),userid=serializer.data.get('userid'))
-                                userid=User.objects.get(id=serializer.data.get('userid'))
+                                already=Branches.objects.filter(zoho_branch_id=d.get('branch_id'))
+                                
                                 if not already:
-                                    zohodata = iteminfo.objects.create(
+                                    zohodata = Branches.objects.create(
                                         branch_name=d.get('branch_name'),
                                         zoho_branch_id=d.get('branch_id'),
                                         branch_email=d.get('email'),

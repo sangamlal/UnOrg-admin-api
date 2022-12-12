@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
  
 # Create your models here.
 
-class Branch(models.Model):
+class Branches(models.Model):
     zoho_branch_id = models.CharField(max_length=50,unique=True)
     branch_name = models.CharField(max_length=20,null=True,blank=True)
     branch_email = models.EmailField(max_length=30)
@@ -21,7 +21,7 @@ class User(AbstractUser):
     is_zoho_active=models.IntegerField(default=0)
     latitude=models.CharField(max_length=200)
     longitude=models.CharField(max_length=200)
-    branch_id = models.ForeignKey(Branch,on_delete=models.CASCADE)
+    branch_id = models.ForeignKey(Branches,on_delete=models.CASCADE)
     def __str__(self) :
         return self.username
 
