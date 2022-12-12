@@ -4105,3 +4105,122 @@ class clear_data(APIView):
         except Exception as e:
             print(e)
             return Response("Fail", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+class AddBranchesAPI(APIView):
+    # permission_classes = [IsAuthenticated]
+    # Handling Post Reuqest
+    def post(self, request):
+        try:
+            serializer = GetSlotListSerializer(data=request.data)
+            if serializer.is_valid():
+                usercordiantes = User.objects.filter(id=serializer.data.get(
+                        'userid', '')).exists()
+                print("======22222",usercordiantes)
+                if usercordiantes:
+                    # data=zohoaccount.objects.get(userid=serializer.data.get(
+                    #     'userid', ''),is_deleted=0)
+                    # print("===========",data.refreshtoken)
+                    parameters = {
+                    # "refresh_token":data.refreshtoken,
+                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    "refresh_token":"1000.18dbbc8aeb1c86231d317882035fd4ba.6fb716064eb7baa1ca994b80faa337cb",
+                    # "client_id":data.clientid,
+                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
+                    "client_id":'1000.KNTTWIQG6BRID6XQGEURG025O51XXD',
+                    # "client_secret":data.clientsecret,
+                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    "client_secret":'c7a0541ea8b37ea7716dc368d393fdab5f11891ae1',
+                    # "redirect_uri":data.redirecturi,
+                    "redirect_uri":'https://www.onlinethela.online/add-access',
+                    "grant_type":"refresh_token",
+                    }
+
+                    response = requests.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
+                    if response.status_code == 200:
+                        data =   response.json()
+                        accesstoken = data['access_token']
+                        print("dddddddd ",accesstoken)
+
+                        headers = {
+                            'Content-Type':'application/json',
+                            'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
+                            }
+                        
+                        response = requests.get("https://books.zoho.in/api/v3/branches?organization_id=60018155668", headers=headers)
+                        print("llll ",response)
+                        if response.status_code == 200:
+                            data =   response.json()
+                            message='Iitem not found'
+                            # print("dkkkkkkk : ",data)
+                            # print(";;;;;;; ",data)
+                            for d in data.get("branches"):
+                                # print("Branches list data : ",d)
+                                message='All branches already exist'
+                                # check item id
+                                already=iteminfo.objects.filter(zoho_item_id=d.get('item_id', ''),userid=serializer.data.get('userid'))
+                                userid=User.objects.get(id=serializer.data.get('userid'))
+                                if not already:
+                                    zohodata = iteminfo.objects.create(
+                                        branch_name=d.get('branch_name'),
+                                        zoho_branch_id=d.get('branch_id'),
+                                        branch_email=d.get('email'),
+                                        created_at=datetime.now(),
+                                        is_deleted=0,
+                                        updated_at=datetime.now(),
+                                    )
+                                    zohodata.save()
+                                    message="branches added"
+                                
+                            
+                            json_data = {
+                                'status_code': 201,
+                                'status': 'Success',
+                                'data':'',
+                                'message': message
+                            }
+                            return Response(json_data, status.HTTP_201_CREATED)
+                        else:
+                            json_data = {
+                                    'status_code': 400,
+                                    'status': 'Success',
+                                    'data':'',
+                                    'message': "{}".format(response)
+                                }
+                            return Response(json_data, status.HTTP_400_BAD_REQUEST)
+                    else:
+                            json_data = {
+                                    'status_code': 400,
+                                    'status': 'Success',
+                                    'data':'',
+                                    'message': "{}".format(response)
+                                }
+                            return Response(json_data, status.HTTP_400_BAD_REQUEST)
+                else:
+                    json_data = {
+                        'status_code': 200,
+                        'status': 'Success',
+                        'data': 'User not found',
+                        'message': 'data not found'
+                    }
+                    return Response(json_data, status.HTTP_200_OK)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_200_OK)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': "{}".format(err),
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
