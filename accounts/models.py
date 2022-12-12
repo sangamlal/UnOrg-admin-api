@@ -13,6 +13,7 @@ class Branch(models.Model):
     branch_email = models.EmailField(email=30)
     is_deleted=models.BooleanField(default=0)
     created_at=models.DateTimeField(auto_now=True)
+    updated_at=models.DateTimeField(auto_now=True)
 
 class User(AbstractUser):
     
