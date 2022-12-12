@@ -2376,7 +2376,7 @@ class GetOrderwithoutCoordinatesList(APIView):
                             elif coordinate_type=='orderweight-exceed':
                                 #Getting Extra Order weight
                                
-                                orderwithoutcoordinates = orderinfo.objects.filter(created_date__date=created_date,ime_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
+                                orderwithoutcoordinates = orderinfo.objects.filter(created_date__date=created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             elif coordinate_type=='manually':
                                 orderwithoutcoordinates = ordersdelivery.objects.filter(created_date__date=created_date,is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime)
                             else:
