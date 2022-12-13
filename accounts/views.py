@@ -4226,3 +4226,118 @@ class AddBranchesAPI(APIView):
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class warehouse_branches_list_fun(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = warehousebrancheslistSerializer(data=request.data)
+            if serializer.is_valid():
+                print("--------------",serializer.data.get('userid', ''))
+                vehicledata = User.objects.filter(id=serializer.data.get(
+                        'userid', ''))
+                if vehicledata:
+                    print(";;;;;;;;;;;;;      ",vehicledata)
+                    data = User.objects.filter(is_zoho_active=0)
+                    list_of_data=[]
+                    for d in data:
+                        print(d)
+                        d_value=d.id
+                        if d_value not in list_of_data:
+                            list_of_data.append(d_value)
+                    print("============= ",list_of_data)
+                    
+                    warehouse_branch_type=serializer.data.get('warehouse_branch_type') 
+                    if warehouse_branch_type=='active_branches':
+                        
+                        warehouseobj=Branches.objects.filter(is_deleted=0,id__in=list_of_data)
+                        print("Active invoices-------------->>>>>",warehouseobj)
+                    elif warehouse_branch_type=='inactive_branches':
+                        warehouseobj=Branches.objects.filter(is_deleted=0).exclude(id__in=list_of_data)
+                    elif warehouse_branch_type=='total_branches':
+                        warehouseobj=Branches.objects.filter(is_deleted=0)
+                    
+
+
+                   
+                    
+                    
+                    datalist=[]
+                    for data in warehouseobj:
+                        userdataupdate={
+                            "first_name":'',
+                            "username":'',
+                            "last_name":'',
+                            "email":'',
+                            "mobile":'',
+                            "latitude":'',
+                            "longitude":'',
+                            "last_login":'',
+                            "is_zoho_active":'',
+                        }
+                        userdata=User.objects.get(branch_id=data.id) if User.objects.filter(branch_id=data.id).exists() else 0
+                        if userdata:
+                            userdataupdate={"userid":userdata.id,
+                            "first_name":userdata.first_name,
+                            "username":userdata.username,
+                            "last_name":userdata.last_name,
+                            "email":userdata.email,
+                            "mobile":userdata.mobile,
+                            "latitude":userdata.latitude,
+                            "longitude":userdata.longitude,
+                            "last_login":userdata.last_login,
+                            "is_zoho_active":userdata.is_zoho_active,
+
+                            }
+                        datadict={
+                            "branches_id": data.id,
+                            "zoho_branch_id": data.zoho_branch_id,
+                            "branch_name": data.branch_name,
+                            "branch_email": data.branch_email,
+                            "branch_email": data.branch_email,
+                        }
+                        datadict.update(userdataupdate)
+                        datalist.append(datadict)
+
+                    if datalist :
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': datalist,
+                            'message': 'Warehouse branches found'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        print("================")
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'message': 'Warehouse branches not found'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)

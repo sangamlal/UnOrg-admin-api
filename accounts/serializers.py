@@ -246,3 +246,11 @@ class NewAssignOrdertoVehicleSerializer(serializers.Serializer):
 class is_vehicle_free_serializers(serializers.Serializer):
     vehicle_id = serializers.CharField(required = True)
     type = serializers.CharField(required = True)
+
+
+class warehousebrancheslistSerializer(serializers.Serializer):
+    warehouse_branch_type = serializers.CharField(required=True)
+    userid = serializers.CharField(required=True)
+
+    class Meta:
+        fields = '__all__'

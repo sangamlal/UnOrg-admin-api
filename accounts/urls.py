@@ -51,5 +51,6 @@ urlpatterns = [
     path('is_vehicle_free',views.is_vehicle_free.as_view()),
     path('clear_data',views.clear_data.as_view()),
     path('addbranchesapi',views.AddBranchesAPI.as_view()),
+    path('warehouse_branches_list',views.warehouse_branches_list_fun.as_view()),
     # path('newfetchinvoicedata',views.NewFetchInvoiceData.as_view()),
 ]
