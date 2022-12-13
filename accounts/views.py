@@ -4251,7 +4251,7 @@ class warehouse_branches_list_fun(APIView):
                     list_of_data=[]
                     for d in data:
                         print(d)
-                        d_value=d.id
+                        d_value=d.branch_id
                         if d_value not in list_of_data:
                             list_of_data.append(d_value)
                    
