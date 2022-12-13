@@ -2334,7 +2334,7 @@ class GetOrderwithoutCoordinatesList(APIView):
             if serializer.is_valid():
                 userid = serializer.data.get('userid')
                 datacheck=User.objects.filter(id=userid)
-                coordinate_type=serializer.data.get('coordinate_type')
+                coordinate_type=serializer.data.get('type')
                 #Check Data 
                 if datacheck:
                     #Getting data of user
