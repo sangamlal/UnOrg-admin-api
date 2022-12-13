@@ -4237,7 +4237,6 @@ class warehouse_branches_list_fun(APIView):
                 vehicledata = User.objects.filter(id=serializer.data.get(
                         'userid', ''))
                 if vehicledata:
-                    print(";;;;;;;;;;;;;      ",vehicledata)
                     data = User.objects.filter(is_zoho_active=0)
                     list_of_data=[]
                     for d in data:
@@ -4245,23 +4244,18 @@ class warehouse_branches_list_fun(APIView):
                         d_value=d.id
                         if d_value not in list_of_data:
                             list_of_data.append(d_value)
-                    print("============= ",list_of_data)
-                    
+                   
                     warehouse_branch_type=serializer.data.get('warehouse_branch_type') 
                     if warehouse_branch_type=='active_branches':
                         
-                        warehouseobj=Branches.objects.filter(is_deleted=0,id__in=list_of_data)
-                        print("Active invoices-------------->>>>>",warehouseobj)
+                        warehouseobj=Branches.objects.filter(is_deleted=0)
+                        
                     elif warehouse_branch_type=='inactive_branches':
                         warehouseobj=Branches.objects.filter(is_deleted=0).exclude(id__in=list_of_data)
                     elif warehouse_branch_type=='total_branches':
                         warehouseobj=Branches.objects.filter(is_deleted=0)
                     
 
-
-                   
-                    
-                    
                     datalist=[]
                     for data in warehouseobj:
                         userdataupdate={
