@@ -4247,7 +4247,7 @@ class warehouse_branches_list_fun(APIView):
                 vehicledata = User.objects.filter(id=serializer.data.get(
                         'userid', ''))
                 if vehicledata:
-                    data = User.objects.filter(is_zoho_active=0)
+                    data = User.objects.filter(is_zoho_active=1,is_superuser=0)
                     list_of_data=[]
                     for d in data:
                         print(d)
@@ -4258,12 +4258,14 @@ class warehouse_branches_list_fun(APIView):
                     warehouse_branch_type=serializer.data.get('warehouse_branch_type') 
                     if warehouse_branch_type=='active_branches':
                         
-                        warehouseobj=Branches.objects.filter(is_deleted=0)
+                        warehouseobj=Branches.objects.filter(is_deleted=0,user__isnull=False,user__is_superuser=0)
+                        # print("=======",warehouseobj)
                         
                     elif warehouse_branch_type=='inactive_branches':
-                        warehouseobj=Branches.objects.filter(is_deleted=0).exclude(id__in=list_of_data)
+                        warehouseobj=Branches.objects.filter(is_deleted=0,user__is_zoho_active=0,user__is_superuser=0)
+                        # print("llllllll      ",warehouseobj)
                     elif warehouse_branch_type=='total_branches':
-                        warehouseobj=Branches.objects.filter(is_deleted=0)
+                        warehouseobj=Branches.objects.filter(is_deleted=0,user__is_superuser=0)
                     
 
                     datalist=[]
