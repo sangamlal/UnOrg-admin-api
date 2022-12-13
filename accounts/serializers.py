@@ -19,7 +19,7 @@ class SignupUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'password', 'confirm_password',
-                  'email', 'first_name', 'last_name', 'mobile')
+                  'email', 'first_name', 'last_name', 'mobile','branch_id')
         # extra_kwargs={"confirm_password":{'write_only':True}}
 
     def validate(self, attrs):

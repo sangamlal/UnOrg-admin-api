@@ -66,13 +66,15 @@ class SignupUser(APIView):
         try:
             serializer = SignupUserSerializer(data=request.data)
             if serializer.is_valid():
+                branch_id = serializer.validated_data.get('branch_id')
                 user = User.objects.create(
                     username=serializer.validated_data['username'],
                     email=serializer.validated_data['email'],
                     first_name=serializer.validated_data.get('first_name', ''),
                     last_name=serializer.validated_data.get('last_name', ''),
                     mobile=serializer.validated_data.get('mobile', ''),
-                    is_zoho_active=0
+                    branch_id=branch_id,
+                    is_zoho_active=1
                 )
                 user.set_password(serializer.validated_data['password'])
                 user.save()
@@ -2747,7 +2749,7 @@ class NewFetchInvoiceData(APIView):
             req = requests.Session()
             serializer = GetSlotListSerializer(data=request.data)
             if serializer.is_valid():
-                usercordiantes = zohoaccount.objects.filter(userid=serializer.data.get(
+                usercordiantes = User.objects.filter(id=serializer.data.get(
                         'userid', ''))
                 if usercordiantes:
                     # data=zohoaccount.objects.get(userid=serializer.data.get(
@@ -2792,6 +2794,14 @@ class NewFetchInvoiceData(APIView):
                                 for invoice in invoices:
                                     # Getting Invoice data
                                     zoho_last_modified_time = invoice.get('last_modified_time')
+                                    zoho_branch_id = invoice.get('branch_id')
+                                    user_obj = User.objects.get(id=serializer.data.get(
+                                        'userid', ''))
+                                    branch_obj_id = user_obj.branch_id_id
+                                    branch_obj = Branches.objects.get(id=branch_obj_id)
+                                    branch_id = branch_obj.zoho_branch_id
+                                    if branch_id!=zoho_branch_id:
+                                        continue
                                     list =datetime.strptime(zoho_last_modified_time, "%Y-%m-%dT%H:%M:%S+%f")    
                                     zoho_last_modified_time = list.strftime("%H:%M:%S")
                                     orderobj_updated=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
