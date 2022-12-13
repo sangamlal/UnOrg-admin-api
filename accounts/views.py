@@ -2601,7 +2601,11 @@ class GetAppOrderDetail(APIView):
                         'reason': orderdata.reason,
                         'totalamount':orderdata.upi+orderdata.cash
                         } 
-                    
+                    is_vehicle_free = ordersdelivery.objects.filter(vehicle_id=vehicle_id,status='Pending')
+                    if not len(is_vehicle_free):
+                        obj = vehicleinfo.objects.get(id=vehicle_id)
+                        obj.is_vehicle_not_available=0
+                        obj.save()
                     json_data = {
                         'status_code': 200,
                         'status': 'Success',
