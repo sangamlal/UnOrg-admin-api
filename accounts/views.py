@@ -4258,14 +4258,14 @@ class warehouse_branches_list_fun(APIView):
                     warehouse_branch_type=serializer.data.get('warehouse_branch_type') 
                     if warehouse_branch_type=='active_branches':
                         
-                        warehouseobj=Branches.objects.filter(is_deleted=0,user__isnull=False,user__is_superuser=0)
-                        # print("=======",warehouseobj)
+                        warehouseobj=Branches.objects.filter(is_deleted=0,user__isnull=False)
+                        print("=======",warehouseobj)
                         
                     elif warehouse_branch_type=='inactive_branches':
-                        warehouseobj=Branches.objects.filter(is_deleted=0,user__is_zoho_active=0,user__is_superuser=0)
-                        # print("llllllll      ",warehouseobj)
+                        warehouseobj=Branches.objects.filter(is_deleted=0,user__isnull=True)
+                        print("llllllll      ",warehouseobj)
                     elif warehouse_branch_type=='total_branches':
-                        warehouseobj=Branches.objects.filter(is_deleted=0,user__is_superuser=0)
+                        warehouseobj=Branches.objects.filter(is_deleted=0)
                     
 
                     datalist=[]
@@ -4280,6 +4280,7 @@ class warehouse_branches_list_fun(APIView):
                             "longitude":'',
                             "last_login":'',
                             "is_zoho_active":'',
+                            "is_superuser":False,
                         }
                         userdata=User.objects.get(branch_id=data.id) if User.objects.filter(branch_id=data.id).exists() else 0
                         if userdata:
@@ -4293,6 +4294,7 @@ class warehouse_branches_list_fun(APIView):
                             "longitude":userdata.longitude,
                             "last_login":userdata.last_login,
                             "is_zoho_active":userdata.is_zoho_active,
+                            "is_superuser":userdata.is_superuser,
 
                             }
                         datadict={
