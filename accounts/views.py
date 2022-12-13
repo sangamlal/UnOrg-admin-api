@@ -1587,8 +1587,8 @@ class AddItemAPI(APIView):
         try:
             serializer = GetSlotListSerializer(data=request.data)
             if serializer.is_valid():
-                usercordiantes = zohoaccount.objects.filter(userid=serializer.data.get(
-                        'userid', ''),is_deleted=0).exists()
+                usercordiantes = User.objects.filter(id=serializer.data.get(
+                        'userid', '')).exists()
                 print("======22222",usercordiantes)
                 if usercordiantes:
                     # data=zohoaccount.objects.get(userid=serializer.data.get(
