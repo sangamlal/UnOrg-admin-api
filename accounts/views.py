@@ -3051,11 +3051,12 @@ class AssignOrdertoVehicle_fun(APIView):
                                     print("--------",checkorderdelivery)
                                     if not checkorderdelivery:
                                         print("===========>>>>>>1111111111111>>>>>>",check_vehicle_for_next_trip)
-                                        if checkvehicle.id not in check_vehicle_for_next_trip:
-                                            check_trip_count=ordersdelivery.objects.filter(time_slot=checkslotinfo.slottime , user_id=userid,vehicle_id=checkvehicle.id).last()
-                                            check_vehicle_for_next_trip.append(checkvehicle.id)
-                                            if check_trip_count:
-                                                trip_count_var=check_trip_count.trip_count+1
+                                        if type=='manual':
+                                            if checkvehicle.id not in check_vehicle_for_next_trip:
+                                                check_trip_count=ordersdelivery.objects.filter(time_slot=checkslotinfo.slottime , user_id=userid,vehicle_id=checkvehicle.id).last()
+                                                check_vehicle_for_next_trip.append(checkvehicle.id)
+                                                if check_trip_count:
+                                                    trip_count_var=check_trip_count.trip_count+1
                                         print("===========>>>>>>22222222>>>>>>",check_vehicle_for_next_trip)
                                         orderdata=ordersdelivery.objects.create(
                                             order_id=checkorderinfo,
