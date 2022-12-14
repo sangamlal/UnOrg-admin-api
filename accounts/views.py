@@ -3593,10 +3593,12 @@ class HistoryAllocatedToVehicleDeliveryOrderList_f(APIView):
                             'userid', ''))
                         finaldelveyorder=[]
                         if vehicleobj:
+                            created_date = datetime.now().date()
+                            created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
                             for vehcledata in vehicleobj:
                                 dictdata={}
                                 # print("------------>>>> ",vehcledata.id)
-                                vehicleobj = ordersdelivery.objects.filter(is_deleted=1,user_id=serializer.data.get(
+                                vehicleobj = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=1,user_id=serializer.data.get(
                                     'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=1).order_by('serialno')
                                 
                                 total_collected_amount=0.0
