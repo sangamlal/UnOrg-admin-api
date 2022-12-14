@@ -1918,7 +1918,7 @@ class GetOrderbySlotDetail(APIView):
                             orderwithoutcoordinates = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid).exclude(invoice_id__in=invoice_id)
                             orderwithcoordinates = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
                             #Getting Extra Order weight
-                            manual_count = ordersdelivery.objects.filter(created_date__date = created_date,is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime).count()
+                            manual_count = ordersdelivery.objects.filter(created_date__date = created_date,is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime,is_published=0).count()
                             orderwithoutexceeded = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             # print("----Exceeded Order List >>>> ----- ",orderwithoutexceeded)
                             allorderlist = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0)
@@ -3994,6 +3994,7 @@ class AllVehicleList_fun(APIView):
                             'userid': data.userid.id,
                             'created_at': data.created_at,
                             'password': data.password,
+                            'is_vehicle_not_available': data.is_vehicle_not_available,
                             'vehicle_remaining_weight': int(data.weightcapacity)-totalvehicle_remaining_weight
                         }
                         vehiclelist.append(datadict)
