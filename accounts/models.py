@@ -116,3 +116,4 @@ class ordersdelivery(models.Model):
     created_date = models.DateTimeField(auto_now=True)
     is_vehicle_update=models.BooleanField(default=0)
     is_priority_change=models.BooleanField(default=0)
+    trip_count=models.IntegerField(default=0)
