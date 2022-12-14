@@ -3232,20 +3232,20 @@ class AllocatedToVehicleDeliveryOrderList_f(APIView):
                                 dictdata={}
                                 # print("------------>>>> ",vehcledata.id)
                                 trip_count_obj = ordersdelivery.objects.values('trip_count').filter(created_date__date=created_date,is_deleted=0,user_id=serializer.data.get(
-                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=1).distinct()
+                                    'userid', ''),vehicle_id=vehcledata.id,is_published=1).distinct()
                                 trip_count_arr=[d["trip_count"] for d in trip_count_obj]
                                 trip_list_count=[]
+                                total_collected_amount=0.0
+                                total_collected_upi=0.0
+                                total_collected_cash=0.0
                                 for t in trip_count_arr:
                                     trip_data={
                                         "trip":t,
                                         "orderdatabyvehicle":[]
                                     }
                                     vehicleobj = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=0,user_id=serializer.data.get(
-                                        'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,trip_count=t,is_published=1).order_by('serialno')
+                                        'userid', ''),vehicle_id=vehcledata.id,trip_count=t,is_published=1).order_by('serialno')
                                     
-                                    total_collected_amount=0.0
-                                    total_collected_upi=0.0
-                                    total_collected_cash=0.0
                                     # print("---------",vehicleobj)
                                     orderlist=[]
                                     for data in vehicleobj:
@@ -3647,6 +3647,9 @@ class HistoryAllocatedToVehicleDeliveryOrderList_f(APIView):
                                     'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=1).distinct()
                                 trip_count_arr=[d["trip_count"] for d in trip_count_obj]
                                 trip_list_count=[]
+                                total_collected_amount=0.0
+                                total_collected_upi=0.0
+                                total_collected_cash=0.0
                                 for t in trip_count_arr:
                                     trip_data={
                                         "trip":t,
@@ -3655,9 +3658,6 @@ class HistoryAllocatedToVehicleDeliveryOrderList_f(APIView):
                                     vehicleobj = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=1,user_id=serializer.data.get(
                                         'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,trip_count=t,is_published=1).order_by('serialno')
                                     
-                                    total_collected_amount=0.0
-                                    total_collected_upi=0.0
-                                    total_collected_cash=0.0
                                     # print("---------",vehicleobj)
                                     orderlist=[]
                                     for data in vehicleobj:
