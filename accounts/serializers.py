@@ -119,6 +119,7 @@ class GetVehicleDetailSerializer(serializers.Serializer):
         fields = '__all__'
 class GetVehicleListSerializer(serializers.Serializer):
     userid = serializers.CharField(required=True)
+    type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     class Meta:
         fields = '__all__'
 
