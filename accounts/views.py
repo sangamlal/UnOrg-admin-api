@@ -3018,6 +3018,8 @@ class AssignOrdertoVehicle_fun(APIView):
                 is_set_manual=0
                 if type=='manual':
                     is_set_manual=1
+                trip_count_var=1
+                check_vehicle_for_next_trip=[]
                 for vehicle_order_obj in assignorderlistconvertedlist:
                     vehicleid= vehicle_order_obj.get("vehicleid")
                     orderid=vehicle_order_obj.get("orderid")
@@ -3048,6 +3050,12 @@ class AssignOrdertoVehicle_fun(APIView):
                                     checkorderdelivery=ordersdelivery.objects.filter(invoice_id=invoiceid,user_id=userid,is_deleted=0)
                                     print("--------",checkorderdelivery)
                                     if not checkorderdelivery:
+                                        print("===========>>>>>>1111111111111>>>>>>",check_vehicle_for_next_trip)
+                                        if checkvehicle.id not in check_vehicle_for_next_trip:
+                                            check_trip_count=ordersdelivery.objects.filter(time_slot=checkslotinfo.slottime , user_id=userid,vehicle_id=checkvehicle.id).last()
+                                            if check_trip_count:
+                                                trip_count_var=check_trip_count.trip_count+1
+                                                check_vehicle_for_next_trip.append(checkvehicle.id)
 
                                         orderdata=ordersdelivery.objects.create(
                                             order_id=checkorderinfo,
@@ -3078,7 +3086,8 @@ class AssignOrdertoVehicle_fun(APIView):
                                             created_date=checkorderinfo.created_date,
                                             is_vehicle_update=1,
                                             is_priority_change=0,
-                                            is_manually_assigned=is_set_manual
+                                            is_manually_assigned=is_set_manual,
+                                            trip_count=trip_count_var,
                                         )
                                         orderdata.save()
                                         checkvehicle.is_vehicle_not_available=1
