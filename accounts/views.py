@@ -1050,7 +1050,7 @@ class VehicleList_fun(APIView):
                 vehicledata = User.objects.filter(id=serializer.data.get(
                         'userid', ''))
                 if vehicledata:
-                    data = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''))
+                    data = ordersdelivery.objects.filter(is_manually_assigned=1,vehicle_id__is_vehicle_not_available=1,is_deleted=0,user_id=serializer.data.get('userid', ''))
                     list_of_data=[]
                     for d in data:
                         print(d)
@@ -2149,13 +2149,17 @@ class RootOptimazationAPI(APIView):
                                         if not checkorderdelivery:
                                             vehicleobj=vehicleinfo.objects.get(id=vehicle_id,userid=userid,is_deleted=0)
                                             userobj=User.objects.get(id=userid)
+
+                                            print("--------------check_vehicle_for_next_trip:>>",check_vehicle_for_next_trip)
                                             if vehicle_id not in check_vehicle_for_next_trip:
                                                 check_trip_count=ordersdelivery.objects.filter(time_slot=orderinfodata.time_slot , user_id=userid,vehicle_id=vehicle_id).last()
+                                                print("--------------check_trip_count::>>",check_trip_count)
                                                 check_vehicle_for_next_trip.append(vehicle_id)
                                                 if check_trip_count:
                                                     trip_count_var=check_trip_count.trip_count+1
                                                 else:
                                                     trip_count_var=1
+                                                print("--------------trip_count_var::>>",trip_count_var)
                                             # print("--------",orderinfodata)
                                             orderdata=ordersdelivery.objects.create(
                                                 order_id=orderinfodata,
@@ -3737,7 +3741,7 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                         vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                             'userid', ''))
                         finaldelveyorder=[]
-                        data = ordersdelivery.objects.filter(is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''))
+                        data = ordersdelivery.objects.filter(is_manually_assigned=1,vehicle_id__is_vehicle_not_available=1,is_deleted=0,user_id=serializer.data.get('userid', ''))
                         list_of_data=[]
                         for d in data:
                             print(d)
