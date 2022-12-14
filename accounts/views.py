@@ -3051,9 +3051,10 @@ class AssignOrdertoVehicle_fun(APIView):
                     if userinfo:
                         userinfo = User.objects.get(id=userid)
                         print("-------UserInfo -------- ",userinfo)
-                        checkvehicle = vehicleinfo.objects.get(id=vehicleid , userid=userid)
+                        checkvehicle = vehicleinfo.objects.filter(id=vehicleid , userid=userid).exists()
                         # print("--------------",userinfo.get("username"))
                         if checkvehicle:
+                            checkvehicle = vehicleinfo.objects.get(id=vehicleid , userid=userid)
                             print("-------checkvehicle -------- ",checkvehicle)
                             checkslotinfo = slotinfo.objects.get(id=slotid , userid=userid)
                             if checkslotinfo:
@@ -3068,11 +3069,15 @@ class AssignOrdertoVehicle_fun(APIView):
                                         if checkvehicle.id not in check_vehicle_for_next_trip:
                                             check_trip_count=ordersdelivery.objects.filter(time_slot=checkslotinfo.slottime , user_id=userid,vehicle_id=checkvehicle.id).last()
                                             check_vehicle_for_next_trip.append(checkvehicle.id)
-                                            if check_trip_count:
+                                            if check_trip_count and not(checkvehicle.is_vehicle_not_available):
                                                 trip_count_var=check_trip_count.trip_count+1
-                                            else:
+                                            elif not check_trip_count:
                                                 trip_count_var=1
+                                            else:
+                                                trip_count_var=check_trip_count.trip_count
                                         print("===========>>>>>>22222222>>>>>>",check_vehicle_for_next_trip)
+                                        update_is_deleted=ordersdelivery.objects.filter(time_slot=checkslotinfo.slottime , user_id=userid,vehicle_id=checkvehicle.id,is_manually_assigned=1)
+                                        update_is_deleted.update(is_deleted=0)
                                         orderdata=ordersdelivery.objects.create(
                                             order_id=checkorderinfo,
                                             vehicle_id=checkvehicle,
@@ -3173,10 +3178,17 @@ class AssignOrdertoVehicle_fun(APIView):
                                         if checkvehicle.id not in check_vehicle_for_next_trip:
                                             check_trip_count=ordersdelivery.objects.filter(time_slot=checkslotinfo.slottime , user_id=userid,vehicle_id=checkvehicle.id).last()
                                             check_vehicle_for_next_trip.append(checkvehicle.id)
-                                            if check_trip_count:
+                                            if check_trip_count and not(checkvehicle.is_vehicle_not_available):
                                                 trip_count_var=check_trip_count.trip_count+1
-                                            else:
+                                            elif not check_trip_count:
                                                 trip_count_var=1
+                                            else:
+                                                trip_count_var=check_trip_count.trip_count
+                                        checkorderdelivery_list=ordersdelivery.objects.filter(invoice_id=invoiceid,user_id=userid,is_deleted=0)
+                                        if len(checkorderdelivery_list)>1:
+                                            oldvehicleobj = vehicleinfo.objects.get(id=checkorderdelivery.vehicle_id.id , userid=userid)
+                                            oldvehicleobj.is_vehicle_not_available=0
+                                            oldvehicleobj.save()
                                         checkorderdelivery.vehicle_id=checkvehicle
                                         checkorderdelivery.is_vehicle_update=0 if checkorderdelivery.vehicle_id==checkvehicle.id else 1
                                         checkorderdelivery.updated_at=timezone.now()
