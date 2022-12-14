@@ -2663,8 +2663,10 @@ class GetAppOrderList_f(APIView):
                         'vehicleid', ''))
                 if vehicledata:
                     #Getting Order by Vehicleid and is_published is True
+                    vehicleobj_for_trip = ordersdelivery.objects.filter(is_deleted=0,vehicle_id=serializer.data.get(
+                        'vehicleid', ''),is_published=1).last()
                     vehicleobj = ordersdelivery.objects.filter(is_deleted=0,vehicle_id=serializer.data.get(
-                        'vehicleid', ''),is_published=1).order_by('serialno')
+                        'vehicleid', ''),is_published=1,trip_count=vehicleobj_for_trip.trip_count).order_by('serialno')
 
                     total_collected_amount=0.0
                     total_collected_upi=0.0
