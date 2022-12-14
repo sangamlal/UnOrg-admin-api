@@ -2713,6 +2713,7 @@ class GetAppOrderList_f(APIView):
                         json_data = {
                             'status_code': 204,
                             'status': 'Success',
+                            'data': orderlist,
                             'message': 'Order not found'
                         }
                         return Response(json_data, status.HTTP_204_NO_CONTENT)
