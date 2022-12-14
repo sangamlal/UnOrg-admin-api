@@ -2154,8 +2154,8 @@ class RootOptimazationAPI(APIView):
                                                 check_vehicle_for_next_trip.append(vehicle_id)
                                                 if check_trip_count:
                                                     trip_count_var=check_trip_count.trip_count+1
-                                            else:
-                                                trip_count_var=1
+                                                else:
+                                                    trip_count_var=1
                                             # print("--------",orderinfodata)
                                             orderdata=ordersdelivery.objects.create(
                                                 order_id=orderinfodata,
@@ -3065,8 +3065,8 @@ class AssignOrdertoVehicle_fun(APIView):
                                                 check_vehicle_for_next_trip.append(checkvehicle.id)
                                                 if check_trip_count:
                                                     trip_count_var=check_trip_count.trip_count+1
-                                            else:
-                                                trip_count_var=1
+                                                else:
+                                                    trip_count_var=1
                                         print("===========>>>>>>22222222>>>>>>",check_vehicle_for_next_trip)
                                         orderdata=ordersdelivery.objects.create(
                                             order_id=checkorderinfo,
