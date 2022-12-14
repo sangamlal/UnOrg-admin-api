@@ -4378,7 +4378,7 @@ class Check_Is_vehicle_Free_fun(APIView):
                             'status_code': 200,
                             'status': 'Success',
                             'data': '',
-                            'message': 'Vehicle is free'
+                            'message': ''
                         }
                         return Response(json_data, status.HTTP_200_OK)
                     else:
@@ -4386,7 +4386,7 @@ class Check_Is_vehicle_Free_fun(APIView):
                         json_data = {
                             'status_code': 200,
                             'status': 'Success',
-                            'message': 'Vehicle is not free'
+                            'message': 'Vehicles are not free'
                         }
                         return Response(json_data, status.HTTP_200_OK)
                 else:
