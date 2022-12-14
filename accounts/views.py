@@ -3228,55 +3228,65 @@ class AllocatedToVehicleDeliveryOrderList_f(APIView):
                         'userid', ''))
                     finaldelveyorder=[]
                     if vehicleobj:
-                        for vehcledata in vehicleobj:
-                            dictdata={}
-                            # print("------------>>>> ",vehcledata.id)
-                            vehicleobj = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=0,user_id=serializer.data.get(
-                                'userid', ''),is_published=1,vehicle_id=vehcledata.id).order_by('serialno')
-                            
-                            total_collected_amount=0.0
-                            total_collected_upi=0.0
-                            total_collected_cash=0.0
-                            # print("---------",vehicleobj)
-                            orderlist=[]
-                            for data in vehicleobj:
-                                total_collected_amount+=data.upi+data.cash
-                                total_collected_upi+=data.upi
-                                total_collected_cash+=data.cash
-                            
-                                deliveryorderdata={"ordersdeliveryid":data.id,
-                                    "order_id": data.order_id.id,
-                                    "vehicle_id": data.vehicle_id.id,
-                                    "vehiclename": data.vehicle_id.vehiclename,
-                                    "time_slot": data.time_slot,
-                                    'user_id': data.user_id.id,
-                                    "customer_name": data.customer_name,
-                                    "phone_number": data.phone_number,
-                                    'email': data.email,
-                                    'location_coordinates':data.location_coordinates,
-                                    'location_url': data.location_url,
-                                    'weight': data.weight,
-                                    'shipping_address': data.shipping_address ,
-                                    'collectedAmount': data.collectedAmount,
-                                    'invoice_total': data.invoice_total ,
-                                    'invoice_balance': data.invoice_balance ,
-                                    'invoice_number': data.invoice_number ,
-                                    'invoice_id': data.invoice_id ,
-                                    'status': data.status ,
-                                    'upi': data.upi ,
-                                    'cash': data.cash,
-                                    'other': data.other ,
-                                    'serialno': data.serialno ,
-                                    'reason': data.reason,
-                                    'upiamount':data.upi,
-                                    'totalamount':data.upi+data.cash+data.other
-                                    } 
-                                orderlist.append(deliveryorderdata)
-                            dictdata.update({"vehicleid":vehcledata.id,"vehiclename":vehcledata.vehiclename,"orderdatabyvehicle":orderlist,'total_collected_amount': total_collected_amount,
-                            'total_collected_upi': total_collected_upi,
-                            'total_collected_cash': total_collected_cash})
-                            finaldelveyorder.append(dictdata)
-                            # finaldelveyorder+=vehicleorderlist
+                         for vehcledata in vehicleobj:
+                                dictdata={}
+                                # print("------------>>>> ",vehcledata.id)
+                                trip_count_obj = ordersdelivery.objects.values('trip_count').filter(created_date__date=created_date,is_deleted=0,user_id=serializer.data.get(
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=1).distinct()
+                                trip_count_arr=[d["trip_count"] for d in trip_count_obj]
+                                trip_list_count=[]
+                                for t in trip_count_arr:
+                                    trip_data={
+                                        "trip":t,
+                                        "orderdatabyvehicle":[]
+                                    }
+                                    vehicleobj = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=0,user_id=serializer.data.get(
+                                        'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,trip_count=t,is_published=1).order_by('serialno')
+                                    
+                                    total_collected_amount=0.0
+                                    total_collected_upi=0.0
+                                    total_collected_cash=0.0
+                                    # print("---------",vehicleobj)
+                                    orderlist=[]
+                                    for data in vehicleobj:
+                                        total_collected_amount+=data.upi+data.cash
+                                        total_collected_upi+=data.upi
+                                        total_collected_cash+=data.cash
+                                    
+                                        deliveryorderdata={"ordersdeliveryid":data.id,
+                                            "order_id": data.order_id.id,
+                                            "vehicle_id": data.vehicle_id.id,
+                                            "vehiclename": data.vehicle_id.vehiclename,
+                                            "time_slot": data.time_slot,
+                                            'user_id': data.user_id.id,
+                                            "customer_name": data.customer_name,
+                                            "phone_number": data.phone_number,
+                                            'email': data.email,
+                                            'location_coordinates':data.location_coordinates,
+                                            'location_url': data.location_url,
+                                            'weight': data.weight,
+                                            'shipping_address': data.shipping_address ,
+                                            'collectedAmount': data.collectedAmount,
+                                            'invoice_total': data.invoice_total ,
+                                            'invoice_balance': data.invoice_balance ,
+                                            'invoice_number': data.invoice_number ,
+                                            'invoice_id': data.invoice_id ,
+                                            'status': data.status ,
+                                            'upi': data.upi ,
+                                            'cash': data.cash,
+                                            'other': data.other ,
+                                            'serialno': data.serialno ,
+                                            'reason': data.reason,
+                                            'upiamount':data.upi,
+                                            'totalamount':data.upi+data.cash+data.other
+                                            } 
+                                        orderlist.append(deliveryorderdata)
+                                        trip_data.update({"orderdatabyvehicle":orderlist})
+                                    trip_list_count.append(trip_data)
+                                dictdata.update({"vehicleid":vehcledata.id,"vehiclename":vehcledata.vehiclename,"trips":trip_list_count,'total_collected_amount': total_collected_amount,
+                                'total_collected_upi': total_collected_upi,
+                                'total_collected_cash': total_collected_cash})
+                                finaldelveyorder.append(dictdata)
                     if finaldelveyorder :
                         # total_collected_amount =vehicleorderlist[0].get('totalamount')
                         
@@ -3633,48 +3643,59 @@ class HistoryAllocatedToVehicleDeliveryOrderList_f(APIView):
                             for vehcledata in vehicleobj:
                                 dictdata={}
                                 # print("------------>>>> ",vehcledata.id)
-                                vehicleobj = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=1,user_id=serializer.data.get(
-                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=1).order_by('serialno')
-                                
-                                total_collected_amount=0.0
-                                total_collected_upi=0.0
-                                total_collected_cash=0.0
-                                # print("---------",vehicleobj)
-                                orderlist=[]
-                                for data in vehicleobj:
-                                    total_collected_amount+=data.upi+data.cash
-                                    total_collected_upi+=data.upi
-                                    total_collected_cash+=data.cash
-                                
-                                    deliveryorderdata={"ordersdeliveryid":data.id,
-                                        "order_id": data.order_id.id,
-                                        "vehicle_id": data.vehicle_id.id,
-                                        "vehiclename": data.vehicle_id.vehiclename,
-                                        "time_slot": data.time_slot,
-                                        'user_id': data.user_id.id,
-                                        "customer_name": data.customer_name,
-                                        "phone_number": data.phone_number,
-                                        'email': data.email,
-                                        'location_coordinates':data.location_coordinates,
-                                        'location_url': data.location_url,
-                                        'weight': data.weight,
-                                        'shipping_address': data.shipping_address ,
-                                        'collectedAmount': data.collectedAmount,
-                                        'invoice_total': data.invoice_total ,
-                                        'invoice_balance': data.invoice_balance ,
-                                        'invoice_number': data.invoice_number ,
-                                        'invoice_id': data.invoice_id ,
-                                        'status': data.status ,
-                                        'upi': data.upi ,
-                                        'cash': data.cash,
-                                        'other': data.other ,
-                                        'serialno': data.serialno ,
-                                        'reason': data.reason,
-                                        'upiamount':data.upi,
-                                        'totalamount':data.upi+data.cash+data.other
-                                        } 
-                                    orderlist.append(deliveryorderdata)
-                                dictdata.update({"vehicleid":vehcledata.id,"vehiclename":vehcledata.vehiclename,"orderdatabyvehicle":orderlist,'total_collected_amount': total_collected_amount,
+                                trip_count_obj = ordersdelivery.objects.values('trip_count').filter(created_date__date=created_date,is_deleted=1,user_id=serializer.data.get(
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=1).distinct()
+                                trip_count_arr=[d["trip_count"] for d in trip_count_obj]
+                                trip_list_count=[]
+                                for t in trip_count_arr:
+                                    trip_data={
+                                        "trip":t,
+                                        "orderdatabyvehicle":[]
+                                    }
+                                    vehicleobj = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=1,user_id=serializer.data.get(
+                                        'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,trip_count=t,is_published=1).order_by('serialno')
+                                    
+                                    total_collected_amount=0.0
+                                    total_collected_upi=0.0
+                                    total_collected_cash=0.0
+                                    # print("---------",vehicleobj)
+                                    orderlist=[]
+                                    for data in vehicleobj:
+                                        total_collected_amount+=data.upi+data.cash
+                                        total_collected_upi+=data.upi
+                                        total_collected_cash+=data.cash
+                                    
+                                        deliveryorderdata={"ordersdeliveryid":data.id,
+                                            "order_id": data.order_id.id,
+                                            "vehicle_id": data.vehicle_id.id,
+                                            "vehiclename": data.vehicle_id.vehiclename,
+                                            "time_slot": data.time_slot,
+                                            'user_id': data.user_id.id,
+                                            "customer_name": data.customer_name,
+                                            "phone_number": data.phone_number,
+                                            'email': data.email,
+                                            'location_coordinates':data.location_coordinates,
+                                            'location_url': data.location_url,
+                                            'weight': data.weight,
+                                            'shipping_address': data.shipping_address ,
+                                            'collectedAmount': data.collectedAmount,
+                                            'invoice_total': data.invoice_total ,
+                                            'invoice_balance': data.invoice_balance ,
+                                            'invoice_number': data.invoice_number ,
+                                            'invoice_id': data.invoice_id ,
+                                            'status': data.status ,
+                                            'upi': data.upi ,
+                                            'cash': data.cash,
+                                            'other': data.other ,
+                                            'serialno': data.serialno ,
+                                            'reason': data.reason,
+                                            'upiamount':data.upi,
+                                            'totalamount':data.upi+data.cash+data.other
+                                            } 
+                                        orderlist.append(deliveryorderdata)
+                                        trip_data.update({"orderdatabyvehicle":orderlist})
+                                    trip_list_count.append(trip_data)
+                                dictdata.update({"vehicleid":vehcledata.id,"vehiclename":vehcledata.vehiclename,"trips":trip_list_count,'total_collected_amount': total_collected_amount,
                                 'total_collected_upi': total_collected_upi,
                                 'total_collected_cash': total_collected_cash})
                                 finaldelveyorder.append(dictdata)
