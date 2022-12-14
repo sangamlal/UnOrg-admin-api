@@ -1057,13 +1057,12 @@ class VehicleList_fun(APIView):
                         d_value=d.vehicle_id_id
                         if d_value not in list_of_data:
                             list_of_data.append(d_value)
-                    vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
+                    type = serializer.data.get('type', '')
+                    if type=='manual':
+                        vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get('userid', ''),is_vehicle_not_available=0)
+                    else:
+                        vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                         'userid', '')).exclude(id__in=list_of_data)
-                    from django.db.models import OuterRef, Subquery
-                    # ordersdelivery = ordersdelivery.objects.exclude(is_manually_assigned=0,vehicle_id=vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
-                                        # 'userid', ''),is_vehicle_not_available=0))
-                    
-                    # print("=============",vehicleobj)
                     vehiclelist=[]
                     for data in vehicleobj:
                         totalvehicle_remaining_weight=0
@@ -4111,11 +4110,11 @@ class clear_data(APIView):
             print(id)
             if port=='8000':
                 id = int(id)
-                a=vehicleinfo.objects.filter(userid=27)
+                a=vehicleinfo.objects.filter(userid=id)
                 print(a)
                 a.update(is_vehicle_not_available=0)
                 print(a)   
-                a=ordersdelivery.objects.filter(user_id=27)
+                a=ordersdelivery.objects.filter(user_id=id)
                 print(a) 
                 a.delete()
                 print(a)
