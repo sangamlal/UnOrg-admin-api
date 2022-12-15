@@ -3043,6 +3043,15 @@ class AssignOrdertoVehicle_fun(APIView):
                     is_set_manual=1
                 trip_count_var=1
                 check_vehicle_for_next_trip=[]
+                slotid = serializer.data.get('slotid')
+                slot_obj = slotinfo.objects.get(id= slotid)
+                slot_obj_time = slot_obj.slottime
+                userid= serializer.data.get('userid')
+                lastorderofvehicle=ordersdelivery.objects.filter( user_id=userid,is_deleted=0).last()
+                if lastorderofvehicle:
+                    if lastorderofvehicle.time_slot != slot_obj_time:
+                        update_is_deleted=ordersdelivery.objects.filter(time_slot=lastorderofvehicle.time_slot,is_deleted=0 , user_id=userid)
+                        update_is_deleted.update(is_deleted=1)
                 for vehicle_order_obj in assignorderlistconvertedlist:
                     vehicleid= vehicle_order_obj.get("vehicleid")
                     orderid=vehicle_order_obj.get("orderid")
@@ -3085,11 +3094,7 @@ class AssignOrdertoVehicle_fun(APIView):
                                             else:
                                                 trip_count_var=check_trip_count.trip_count
                                         print("===========>>>>>>22222222>>>>>>",check_vehicle_for_next_trip)
-                                        lastorderofvehicle=ordersdelivery.objects.filter( user_id=userid,vehicle_id=checkvehicle.id,is_manually_assigned=1).last()
-                                        if lastorderofvehicle:
-                                            if lastorderofvehicle.time_slot != checkslotinfo.slottime:
-                                                update_is_deleted=ordersdelivery.objects.filter(time_slot=checkslotinfo.slottime , user_id=userid,vehicle_id=checkvehicle.id,is_manually_assigned=1)
-                                                update_is_deleted.update(is_deleted=1)
+                                      
                                         orderdata=ordersdelivery.objects.create(
                                             order_id=checkorderinfo,
                                             vehicle_id=checkvehicle,
@@ -3196,7 +3201,7 @@ class AssignOrdertoVehicle_fun(APIView):
                                                 trip_count_var=1
                                             else:
                                                 trip_count_var=check_trip_count.trip_count
-                                        checkorderdelivery_list=ordersdelivery.objects.filter(invoice_id=invoiceid,user_id=userid,is_deleted=0)
+                                        checkorderdelivery_list=ordersdelivery.objects.filter(vehicle_id=checkorderdelivery.vehicle_id.id,user_id=userid,is_deleted=0)
                                         if len(checkorderdelivery_list)>1:
                                             oldvehicleobj = vehicleinfo.objects.get(id=checkorderdelivery.vehicle_id.id , userid=userid)
                                             oldvehicleobj.is_vehicle_not_available=0

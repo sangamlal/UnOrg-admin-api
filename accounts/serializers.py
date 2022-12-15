@@ -241,6 +241,8 @@ class NewAssignOrdertoVehicleSerializer(serializers.Serializer):
     # ordersdeliveryid = serializers.CharField(required=True)
     assignorderlist = serializers.CharField(required=True)
     type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    slotid = serializers.CharField(required=False ,allow_blank=True, allow_null=True)
+    userid= serializers.CharField(required=False ,allow_blank=True, allow_null=True)
     class Meta:
         fields = '__all__'
 
