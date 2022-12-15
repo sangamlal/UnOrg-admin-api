@@ -3084,7 +3084,7 @@ class AssignOrdertoVehicle_fun(APIView):
                                                 trip_count_var=check_trip_count.trip_count
                                         print("===========>>>>>>22222222>>>>>>",check_vehicle_for_next_trip)
                                         update_is_deleted=ordersdelivery.objects.filter(time_slot=checkslotinfo.slottime , user_id=userid,vehicle_id=checkvehicle.id,is_manually_assigned=1)
-                                        update_is_deleted.update(is_deleted=0)
+                                        update_is_deleted.update(is_deleted=1)
                                         orderdata=ordersdelivery.objects.create(
                                             order_id=checkorderinfo,
                                             vehicle_id=checkvehicle,
