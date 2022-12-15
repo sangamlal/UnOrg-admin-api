@@ -2396,6 +2396,8 @@ class GetOrderwithoutCoordinatesList(APIView):
                                 orderwithoutcoordinates = orderinfo.objects.filter(created_date__date=created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             elif coordinate_type=='manually':
                                 orderwithoutcoordinates = ordersdelivery.objects.filter(created_date__date=created_date,is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime)
+                            elif coordinate_type=='route':
+                                orderwithoutcoordinates = ordersdelivery.objects.filter(created_date__date=created_date,is_manually_assigned=0,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime)
                             else:
                                 orderwithoutcoordinates = orderinfo.objects.filter(created_date__date=created_date,time_slot=slotinfodata.slottime,userid=userid,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             
@@ -2412,11 +2414,11 @@ class GetOrderwithoutCoordinatesList(APIView):
                             "invoice_total": data.invoice_total, 
                             "invoice_balance": data.invoice_balance, 
                             "time_slot": data.time_slot, 
-                            "contactno": data.phone_number if coordinate_type=='manually' else data.contactno, 
+                            "contactno": data.phone_number if coordinate_type=='manually'  or coordinate_type=='route' else data.contactno, 
                             "location_coordinates": data.location_coordinates,
                             "is_deleted": data.is_deleted, 
                             "updated_at": data.updated_at, 
-                                            "weight": data.weight, 'userid':data.user_id.id if coordinate_type=='manually' else data.userid.id,'created_date': data.created_date} for data in orderwithoutcoordinates]
+                                            "weight": data.weight, 'userid':data.user_id.id if coordinate_type=='manually' or coordinate_type=='route' else data.userid.id,'created_date': data.created_date} for data in orderwithoutcoordinates]
                             # print("---------",orderlist)
                            
                     
