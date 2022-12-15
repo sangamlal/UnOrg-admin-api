@@ -2731,20 +2731,20 @@ class GetAppOrderList_f(APIView):
                     else:
                         print("================")
                         json_data = {
-                            'status_code': 204,
+                            'status_code': 200,
                             'status': 'Success',
                             'data': orderlist,
                             'message': 'Order not found'
                         }
-                        return Response(json_data, status.HTTP_204_NO_CONTENT)
+                        return Response(json_data, status.HTTP_200_OK)
                 else:
                     print("================")
                     json_data = {
-                        'status_code': 204,
+                        'status_code': 200,
                         'status': 'Success',
                         'message': 'User not found'
                     }
-                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+                    return Response(json_data, status.HTTP_200_OK)
             else:
                 print("I am api called-------")
                 json_data = {
