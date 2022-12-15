@@ -2661,11 +2661,13 @@ class GetAppOrderList_f(APIView):
                 print("--------------",serializer.data.get('userid', ''))
                 vehicledata = vehicleinfo.objects.filter(id=serializer.data.get(
                         'vehicleid', ''))
+                created_date = datetime.now().date()
+                created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
                 if vehicledata:
                     #Getting Order by Vehicleid and is_published is True
-                    vehicleobj_for_trip = ordersdelivery.objects.filter(is_deleted=0,vehicle_id=serializer.data.get(
+                    vehicleobj_for_trip = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=0,vehicle_id=serializer.data.get(
                         'vehicleid', ''),is_published=1).last()
-                    vehicleobj = ordersdelivery.objects.filter(is_deleted=0,vehicle_id=serializer.data.get(
+                    vehicleobj = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=0,vehicle_id=serializer.data.get(
                         'vehicleid', ''),is_published=1,trip_count=vehicleobj_for_trip.trip_count).order_by('serialno')
 
                     total_collected_amount=0.0
