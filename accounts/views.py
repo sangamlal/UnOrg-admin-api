@@ -1917,7 +1917,8 @@ class GetOrderbySlotDetail(APIView):
                             orderwithoutcoordinates = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=0,userid=userid).exclude(invoice_id__in=invoice_id)
                             orderwithcoordinates = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0,weight__lt=average_vehicle_calculated_weight).exclude(invoice_id__in=invoice_id)
                             #Getting Extra Order weight
-                            manual_count = ordersdelivery.objects.filter(created_date__date = created_date,is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime,is_published=0).count()
+                            manual_count = ordersdelivery.objects.filter(created_date__date = created_date,is_manually_assigned=1,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime).count()
+                            rootopt_count = ordersdelivery.objects.filter(created_date__date = created_date,is_manually_assigned=0,is_deleted=0,user_id=serializer.data.get('userid', ''),time_slot=slotinfodata.slottime).count()
                             orderwithoutexceeded = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,weight__gt=average_vehicle_calculated_weight,is_deleted=0).exclude(invoice_id__in=invoice_id)
                             # print("----Exceeded Order List >>>> ----- ",orderwithoutexceeded)
                             allorderlist = orderinfo.objects.filter(created_date__date = created_date,time_slot=slotinfodata.slottime,is_coordinate=1,userid=userid,is_deleted=0)
@@ -1925,14 +1926,15 @@ class GetOrderbySlotDetail(APIView):
                             for orderdata in allorderlist:
                                 total_orders_weight+=orderdata.weight
                             print("Averate orders weight------>  ",total_orders_weight)
-                            totalorders=len(orderwithoutcoordinates)+len(orderwithcoordinates)+len(orderwithoutexceeded)+manual_count
+                            totalorders=len(orderwithoutcoordinates)+len(orderwithcoordinates)+len(orderwithoutexceeded)+manual_count+rootopt_count
                             # print("----Exceeded Order List >>>> ----- ",len(orderwithoutexceeded))
                             vehicledata={
                                 'totalorders':totalorders,
                                 'orderwithoutcoordinates':len(orderwithoutcoordinates),
                                 'orderwithcoordinats':len(orderwithcoordinates),
                                 'orderweightexceededvehicleweight':len(orderwithoutexceeded),
-                                'manual_count':manual_count
+                                'manual_count':manual_count,
+                                'rootopt_count':rootopt_count,
                             }
                             print(average_vehicle_calculated_weight," Total Orders weight",total_orders_weight)
                             if total_orders_weight>totalvehicleweight:
