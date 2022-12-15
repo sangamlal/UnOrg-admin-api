@@ -2013,8 +2013,9 @@ class RootOptimazationAPI(APIView):
                         slotdata = slotinfo.objects.filter(id=slotidid,userid=userid)
                         if slotdata:
                             slotinfodata = slotinfo.objects.get(id=slotidid,userid=userid)
-                            deletewaredata=ordersdelivery.objects.filter(user_id=userid,time_slot=slotinfodata.slottime,is_manually_assigned=0)
-                            if deletewaredata:
+                            deletewaredata=ordersdelivery.objects.filter(user_id=userid).last()
+                            if deletewaredata.time_slot != slotinfodata.slottime:
+                                deletewaredata=ordersdelivery.objects.filter(user_id=userid,time_slot = deletewaredata.time_slot)
                                 deletewaredata.update(is_deleted=1)
                             vehicledata = vehicleinfo.objects.filter(userid=userid,is_deleted=0,is_vehicle_not_available=0)
                             vehiclenamelist=[data.vehiclename for data in vehicledata]
