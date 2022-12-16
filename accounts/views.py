@@ -27,7 +27,20 @@ import hashlib
 import ast
 from django.utils import timezone
 # Create your views here.
-
+parameters = {
+                    # "refresh_token":data.refreshtoken,
+                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
+                    # "client_id":data.clientid,
+                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
+                    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
+                    # "client_secret":data.clientsecret,
+                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
+                    # "redirect_uri":data.redirecturi,
+                    "redirect_uri":'https://www.onlinethela.online/add-access',
+                    "grant_type":"refresh_token",
+                    }
 def checkcoordinate(s):    
     try:
         # print(s," ", s.split(' '))
@@ -1466,13 +1479,16 @@ class FetchInvoiceData(APIView):
                     #     'userid', ''))
                     parameters = {
                     # "refresh_token":data.refreshtoken,
-                    "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
                     # "client_id":data.clientid,
-                    "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
+                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
+                    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
                     # "client_secret":data.clientsecret,
-                    "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
-                    # "redirect_uri":data.clientsecret,
-                    "redirect_uri":'https://www.google.co.in',
+                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
+                    # "redirect_uri":data.redirecturi,
+                    "redirect_uri":'https://www.onlinethela.online/add-access',
                     "grant_type":"refresh_token",
                     }
  
@@ -1593,20 +1609,35 @@ class AddItemAPI(APIView):
                     # data=zohoaccount.objects.get(userid=serializer.data.get(
                     #     'userid', ''),is_deleted=0)
                     # print("===========",data.refreshtoken)
+                    # parameters = {
+                    # # "refresh_token":data.refreshtoken,
+                    # # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    # "refresh_token":"1000.18dbbc8aeb1c86231d317882035fd4ba.6fb716064eb7baa1ca994b80faa337cb",
+                    # # "client_id":data.clientid,
+                    # # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
+                    # "client_id":'1000.KNTTWIQG6BRID6XQGEURG025O51XXD',
+                    # # "client_secret":data.clientsecret,
+                    # # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    # "client_secret":'c7a0541ea8b37ea7716dc368d393fdab5f11891ae1',
+                    # # "redirect_uri":data.redirecturi,
+                    # "redirect_uri":'https://www.onlinethela.online/add-access',
+                    # "grant_type":"refresh_token",
+                    # }
                     parameters = {
                     # "refresh_token":data.refreshtoken,
                     # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
-                    "refresh_token":"1000.18dbbc8aeb1c86231d317882035fd4ba.6fb716064eb7baa1ca994b80faa337cb",
+                    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
                     # "client_id":data.clientid,
-                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
-                    "client_id":'1000.KNTTWIQG6BRID6XQGEURG025O51XXD',
+                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
+                    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
                     # "client_secret":data.clientsecret,
                     # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
-                    "client_secret":'c7a0541ea8b37ea7716dc368d393fdab5f11891ae1',
+                    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
                     # "redirect_uri":data.redirecturi,
                     "redirect_uri":'https://www.onlinethela.online/add-access',
                     "grant_type":"refresh_token",
                     }
+ 
 
                     response = requests.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
                     if response.status_code == 200:
@@ -2783,22 +2814,35 @@ class NewFetchInvoiceData(APIView):
                     # data=zohoaccount.objects.get(userid=serializer.data.get(
                     #     'userid', ''))
                     # print("tttttoken ",data.refreshtoken)
+                    # parameters = {
+                    # # "refresh_token":data.refreshtoken,
+                    # # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",#Vishal
+                    # "refresh_token":"1000.1ffe9bac5af892bbef2638945a872502.88932d5e0bdbcb08ebaac8e827fe32e7",#Sangam
+                    # # "client_id":data.clientid,
+                    # # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',#Vishal
+                    # "client_id":'1000.KNTTWIQG6BRID6XQGEURG025O51XXD',#Sangam
+                    # # "client_secret":data.clientsecret,
+                    # # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',#Vishal
+                    # "client_secret":'c7a0541ea8b37ea7716dc368d393fdab5f11891ae1',#Sangam
+                    # # "redirect_uri":data.clientsecret,
+                    # # "redirect_uri":'https://www.google.co.in',
+                    # "redirect_uri":'https://onlinethela.online/add-access',
+                    # "grant_type":"refresh_token",
+                    # }
                     parameters = {
                     # "refresh_token":data.refreshtoken,
-                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",#Vishal
-                    "refresh_token":"1000.1ffe9bac5af892bbef2638945a872502.88932d5e0bdbcb08ebaac8e827fe32e7",#Sangam
+                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+                    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
                     # "client_id":data.clientid,
-                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',#Vishal
-                    "client_id":'1000.KNTTWIQG6BRID6XQGEURG025O51XXD',#Sangam
+                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
+                    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
                     # "client_secret":data.clientsecret,
-                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',#Vishal
-                    "client_secret":'c7a0541ea8b37ea7716dc368d393fdab5f11891ae1',#Sangam
-                    # "redirect_uri":data.clientsecret,
-                    # "redirect_uri":'https://www.google.co.in',
-                    "redirect_uri":'https://onlinethela.online/add-access',
+                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+                    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
+                    # "redirect_uri":data.redirecturi,
+                    "redirect_uri":'https://www.onlinethela.online/add-access',
                     "grant_type":"refresh_token",
                     }
-                    
  
                     response = req.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
                     if response.status_code == 200:
@@ -4231,13 +4275,13 @@ class AddBranchesAPI(APIView):
                     parameters = {
                     # "refresh_token":data.refreshtoken,
                     # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
-                    "refresh_token":"1000.18dbbc8aeb1c86231d317882035fd4ba.6fb716064eb7baa1ca994b80faa337cb",
+                    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
                     # "client_id":data.clientid,
-                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',
-                    "client_id":'1000.KNTTWIQG6BRID6XQGEURG025O51XXD',
+                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
+                    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
                     # "client_secret":data.clientsecret,
                     # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
-                    "client_secret":'c7a0541ea8b37ea7716dc368d393fdab5f11891ae1',
+                    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
                     # "redirect_uri":data.redirecturi,
                     "redirect_uri":'https://www.onlinethela.online/add-access',
                     "grant_type":"refresh_token",
