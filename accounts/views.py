@@ -28,19 +28,19 @@ import ast
 from django.utils import timezone
 # Create your views here.
 parameters = {
-                    # "refresh_token":data.refreshtoken,
-                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
-                    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
-                    # "client_id":data.clientid,
-                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
-                    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
-                    # "client_secret":data.clientsecret,
-                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
-                    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
-                    # "redirect_uri":data.redirecturi,
-                    "redirect_uri":'https://www.onlinethela.online/add-access',
-                    "grant_type":"refresh_token",
-                    }
+    # "refresh_token":data.refreshtoken,
+    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
+    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
+    # "client_id":data.clientid,
+    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
+    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
+    # "client_secret":data.clientsecret,
+    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
+    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
+    # "redirect_uri":data.redirecturi,
+    "redirect_uri":'https://www.onlinethela.online/add-access',
+    "grant_type":"refresh_token",
+}
 def checkcoordinate(s):    
     try:
         # print(s," ", s.split(' '))
@@ -1477,27 +1477,13 @@ class FetchInvoiceData(APIView):
                 if usercordiantes:
                     # data=zohoaccount.objects.get(userid=serializer.data.get(
                     #     'userid', ''))
-                    parameters = {
-                    # "refresh_token":data.refreshtoken,
-                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
-                    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
-                    # "client_id":data.clientid,
-                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
-                    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
-                    # "client_secret":data.clientsecret,
-                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
-                    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
-                    # "redirect_uri":data.redirecturi,
-                    "redirect_uri":'https://www.onlinethela.online/add-access',
-                    "grant_type":"refresh_token",
-                    }
  
                     response = req.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
                     if response.status_code == 200:
                         data =   response.json()
                         accesstoken = data['access_token']
                         currentdate=datetime.now().date()
-                        currentdate='2022-10-31'
+                        # currentdate='2022-10-31'
                         headers = {
                         'Content-Type':'application/json',
                         'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
@@ -1623,22 +1609,6 @@ class AddItemAPI(APIView):
                     # "redirect_uri":'https://www.onlinethela.online/add-access',
                     # "grant_type":"refresh_token",
                     # }
-                    parameters = {
-                    # "refresh_token":data.refreshtoken,
-                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
-                    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
-                    # "client_id":data.clientid,
-                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
-                    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
-                    # "client_secret":data.clientsecret,
-                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
-                    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
-                    # "redirect_uri":data.redirecturi,
-                    "redirect_uri":'https://www.onlinethela.online/add-access',
-                    "grant_type":"refresh_token",
-                    }
- 
-
                     response = requests.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
                     if response.status_code == 200:
                         data =   response.json()
@@ -2828,22 +2798,7 @@ class NewFetchInvoiceData(APIView):
                     # # "redirect_uri":'https://www.google.co.in',
                     # "redirect_uri":'https://onlinethela.online/add-access',
                     # "grant_type":"refresh_token",
-                    # }
-                    parameters = {
-                    # "refresh_token":data.refreshtoken,
-                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
-                    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
-                    # "client_id":data.clientid,
-                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
-                    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
-                    # "client_secret":data.clientsecret,
-                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
-                    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
-                    # "redirect_uri":data.redirecturi,
-                    "redirect_uri":'https://www.onlinethela.online/add-access',
-                    "grant_type":"refresh_token",
-                    }
- 
+                    # } 
                     response = req.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
                     if response.status_code == 200:
                         data =   response.json()
@@ -2914,7 +2869,9 @@ class NewFetchInvoiceData(APIView):
                                         from pytz import timezone 
                                         time_now =  datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
                                         str_time_now = str(time_now)
+                                        print("Data::>>",invoice.get("invoice_number"))
                                         if not orderobj:
+                                            print("Create Condition Called -----------:>>>",countdata)
                                             #Check Is Quardinates available
                                             orderdata=orderinfo.objects.create(
                                                 userid=userobj,
@@ -2926,7 +2883,7 @@ class NewFetchInvoiceData(APIView):
                                                 invoice_number=invoice.get("invoice_number",''),
                                                 invoice_total=invoice.get("total",''),
                                                 invoice_balance=invoice.get("balance",''),
-                                                time_slot=invoice.get("cf_delivery_slots",''),
+                                                time_slot=invoice.get("cf_delivery_slot",''),
                                                 contactno=cusomercontact,
                                                 location_coordinates=cf_location_coordinates,
                                                 location_url=cf_location_url,
@@ -2938,8 +2895,9 @@ class NewFetchInvoiceData(APIView):
                                             )
                                             orderdata.save()
                                             orderupdatemessage="Invoices updated"
+                                            print("Create Condition Done -----------")
                                         else:
-                                            print("Else Condition ----------->>>>  ::::: ",countdata)
+                                            print("UPdate Condition -----------:>>>",countdata)
                                             orderobj.update(                                                
                                                     shipping_address=invoice.get("shipping_address").get("address",''),
                                                     customer_id=invoice.get("customer_id",''),
@@ -2956,6 +2914,7 @@ class NewFetchInvoiceData(APIView):
                                                     updated_at=time_now,
                                                     created_date=invoicecreateddatetime,
                                                     zoho_updated_time = zoho_last_modified_time)
+                                            print("Update Condition Done -----------")
                                         # print("@@@@@@@@@@@@@ 22222222")
                                         countdata+=1
                                         
@@ -4272,20 +4231,6 @@ class AddBranchesAPI(APIView):
                     # data=zohoaccount.objects.get(userid=serializer.data.get(
                     #     'userid', ''),is_deleted=0)
                     # print("===========",data.refreshtoken)
-                    parameters = {
-                    # "refresh_token":data.refreshtoken,
-                    # "refresh_token":"1000.25a090d5c14fadc4b1084d05556d077e.289204add6d03719a38814aa6c917ac6",
-                    "refresh_token":"1000.3234830a0d6316786f7b5ca57e7be728.223699c144f7b1dfa7205b1b146838f3", # varun
-                    # "client_id":data.clientid,
-                    # "client_id":'1000.6CUWGWRSYBPGDHV0DG1L27R4M51WHX',    
-                    "client_id":'1000.V6WCJLJPDQ69Q0NX0Z8U7002QZMT0M',# varun
-                    # "client_secret":data.clientsecret,
-                    # "client_secret":'6d8f85d3802ba38fd768a37c608a0ac30acbf6e730',
-                    "client_secret":'d4baf9042ee43fab64502767b5a172f0e020912dd0',# varun
-                    # "redirect_uri":data.redirecturi,
-                    "redirect_uri":'https://www.onlinethela.online/add-access',
-                    "grant_type":"refresh_token",
-                    }
 
                     response = requests.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
                     if response.status_code == 200:
@@ -4298,7 +4243,7 @@ class AddBranchesAPI(APIView):
                             'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
                             }
                         
-                        response = requests.get("https://books.zoho.in/api/v3/branches?organization_id=60018155668", headers=headers)
+                        response = requests.get("https://books.zoho.in/api/v3/branches?organization_id=60016162221", headers=headers)
                         print("llll ",response)
                         if response.status_code == 200:
                             data =   response.json()
@@ -4544,3 +4489,4 @@ class Check_Is_vehicle_Free_fun(APIView):
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            

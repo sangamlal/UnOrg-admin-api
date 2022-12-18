@@ -53,5 +53,5 @@ urlpatterns = [
     path('addbranchesapi',views.AddBranchesAPI.as_view()),
     path('warehouse_branches_list',views.warehouse_branches_list_fun.as_view()),
     path('check_is_vehicle_free',views.Check_Is_vehicle_Free_fun.as_view()),
-    # path('newfetchinvoicedata',views.NewFetchInvoiceData.as_view()),
+    path('is_vehicle_free_admin',views.is_vehicle_free.as_view()),
 ]
