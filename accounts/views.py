@@ -2775,6 +2775,7 @@ class NewFetchInvoiceData(APIView):
     def post(self, request):
         try:
             print("------------New fetch invoice------")
+            import time
             req = requests.Session()
             serializer = GetSlotListSerializer(data=request.data)
             if serializer.is_valid():
@@ -2810,14 +2811,20 @@ class NewFetchInvoiceData(APIView):
                         'Content-Type':'application/json',
                         'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
                                 }
-
+                        full_time=time.time()
                         response = req.get("https://books.zoho.in/api/v3/invoices?date_start={}&date_end={}".format(currentdate,currentdate), headers=headers)
                         if response.status_code == 200:
                             data1 = response.json()
                             invoices=data1.get("invoices")
+                            print("aaaaaaaaaaaaaaaaaaaaaaaaa length",len(invoices))
                             if invoices:
                                 orderupdatemessage="All invoices already exist"
                                 countdata=0
+                                
+                                now = datetime.now()
+
+                                start_time = now.strftime("%H:%M:%S")
+                                print("Current Time =", start_time)
                                 for invoice in invoices:
                                     # Getting Invoice data
                                     zoho_last_modified_time = invoice.get('last_modified_time')
@@ -2831,16 +2838,18 @@ class NewFetchInvoiceData(APIView):
                                         continue
                                     list =datetime.strptime(zoho_last_modified_time, "%Y-%m-%dT%H:%M:%S+%f")    
                                     zoho_last_modified_time = list.strftime("%H:%M:%S")
-                                    orderobj_updated=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
-                                    if orderobj_updated:
-                                        obj = orderinfo.objects.get(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
-                                        previous_updated_time = obj.zoho_updated_time
-                                        if previous_updated_time !='':
-                                            # previous_updated_time = previous_updated_time.time()
-                                            # previous_updated_time = previous_updated_time.strftime("%H:%M:%S")
-                                            if previous_updated_time>=zoho_last_modified_time:
-                                                continue
+                                    # orderobj_updated=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
+                                    # if orderobj_updated:
+                                    #     obj = orderinfo.objects.get(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
+                                    #     previous_updated_time = obj.zoho_updated_time
+                                    #     if previous_updated_time !='':
+                                    #         # previous_updated_time = previous_updated_time.time()
+                                    #         # previous_updated_time = previous_updated_time.strftime("%H:%M:%S")
+                                    #         if previous_updated_time>=zoho_last_modified_time:
+                                    #             continue
+                                    start_time = time.time()
                                     itemslist_of_invoice = req.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
+                                    print(time.time() - start_time)
                                     if itemslist_of_invoice.status_code == 200:
                                         cf_location_coordinates=itemslist_of_invoice.json().get("invoice").get("cf_location_coordinates",0)
                                         cf_location_url=itemslist_of_invoice.json().get("invoice").get("cf_location_url",0)
@@ -2883,7 +2892,7 @@ class NewFetchInvoiceData(APIView):
                                                 invoice_number=invoice.get("invoice_number",''),
                                                 invoice_total=invoice.get("total",''),
                                                 invoice_balance=invoice.get("balance",''),
-                                                time_slot=invoice.get("cf_delivery_slot",''),
+                                                time_slot=invoice.get("cf_delivery_slot"),
                                                 contactno=cusomercontact,
                                                 location_coordinates=cf_location_coordinates,
                                                 location_url=cf_location_url,
@@ -2899,27 +2908,31 @@ class NewFetchInvoiceData(APIView):
                                         else:
                                             print("UPdate Condition -----------:>>>",countdata)
                                             orderobj.update(                                                
-                                                    shipping_address=invoice.get("shipping_address").get("address",''),
-                                                    customer_id=invoice.get("customer_id",''),
-                                                    weight=totalitemwaight,
-                                                    customer_name=invoice.get("customer_name",''),
-                                                    invoice_number=invoice.get("invoice_number",''),
-                                                    invoice_total=invoice.get("total",''),
-                                                    invoice_balance=invoice.get("balance",''),
-                                                    time_slot=invoice.get("cf_delivery_slots",''),
-                                                    contactno=cusomercontact,
-                                                    location_coordinates=cf_location_coordinates,
-                                                    location_url=cf_location_url,
-                                                    is_coordinate=bool_value,
-                                                    updated_at=time_now,
-                                                    created_date=invoicecreateddatetime,
-                                                    zoho_updated_time = zoho_last_modified_time)
+                                                userid=userobj,
+                                                shipping_address=invoice.get("shipping_address").get("address",''),
+                                                invoice_id=invoice.get("invoice_id",''),
+                                                customer_id=invoice.get("customer_id",''),
+                                                weight=totalitemwaight,
+                                                customer_name=invoice.get("customer_name",''),
+                                                invoice_number=invoice.get("invoice_number",''),
+                                                invoice_total=invoice.get("total",''),
+                                                invoice_balance=invoice.get("balance",''),
+                                                time_slot=invoice.get("cf_delivery_slot"),
+                                                contactno=cusomercontact,
+                                                location_coordinates=cf_location_coordinates,
+                                                location_url=cf_location_url,
+                                                is_coordinate=bool_value,
+                                                is_deleted=0,
+                                                updated_at = time_now,
+                                                created_date=invoicecreateddatetime,
+                                                zoho_updated_time = zoho_last_modified_time)
                                             print("Update Condition Done -----------")
                                         # print("@@@@@@@@@@@@@ 22222222")
                                         countdata+=1
                                         
                                           
                                 else:
+                                    print(time.time()-full_time)
                                     json_data = {
                                     'status_code': 200,
                                     'status': 'Success',
@@ -3373,9 +3386,9 @@ class PublishOrderDeliveryList_fun(APIView):
         try:
             print("--------------")
             serializer = publish_order_Serializer(data=request.data)
-            datacheck=User.objects.filter(id= serializer.data.get('userid', ''))
             #Check Data 
             if serializer.is_valid():
+                datacheck=User.objects.filter(id= serializer.data.get('userid', ''))
                 if datacheck:
                     created_date = datetime.now().date()
                     created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
