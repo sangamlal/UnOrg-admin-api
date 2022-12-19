@@ -2825,7 +2825,10 @@ class NewFetchInvoiceData(APIView):
 
                                 start_time = now.strftime("%H:%M:%S")
                                 print("Current Time =", start_time)
+                                count_for_invoice_call=0
                                 for invoice in invoices:
+                                    if count_for_invoice_call%95==0:
+                                        time.sleep(60)
                                     # Getting Invoice data
                                     zoho_last_modified_time = invoice.get('last_modified_time')
                                     zoho_branch_id = invoice.get('branch_id')
@@ -2838,18 +2841,19 @@ class NewFetchInvoiceData(APIView):
                                         continue
                                     list =datetime.strptime(zoho_last_modified_time, "%Y-%m-%dT%H:%M:%S+%f")    
                                     zoho_last_modified_time = list.strftime("%H:%M:%S")
-                                    # orderobj_updated=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
-                                    # if orderobj_updated:
-                                    #     obj = orderinfo.objects.get(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
-                                    #     previous_updated_time = obj.zoho_updated_time
-                                    #     if previous_updated_time !='':
-                                    #         # previous_updated_time = previous_updated_time.time()
-                                    #         # previous_updated_time = previous_updated_time.strftime("%H:%M:%S")
-                                    #         if previous_updated_time>=zoho_last_modified_time:
-                                    #             continue
+                                    orderobj_updated=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
+                                    if orderobj_updated:
+                                        obj = orderinfo.objects.get(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
+                                        previous_updated_time = obj.zoho_updated_time
+                                        if previous_updated_time !='':
+                                            # previous_updated_time = previous_updated_time.time()
+                                            # previous_updated_time = previous_updated_time.strftime("%H:%M:%S")
+                                            if previous_updated_time>=zoho_last_modified_time:
+                                                continue
                                     start_time = time.time()
                                     itemslist_of_invoice = req.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
                                     print(time.time() - start_time)
+                                    count_for_invoice_call+=1
                                     if itemslist_of_invoice.status_code == 200:
                                         cf_location_coordinates=itemslist_of_invoice.json().get("invoice").get("cf_location_coordinates",0)
                                         cf_location_url=itemslist_of_invoice.json().get("invoice").get("cf_location_url",0)
@@ -2929,7 +2933,8 @@ class NewFetchInvoiceData(APIView):
                                             print("Update Condition Done -----------")
                                         # print("@@@@@@@@@@@@@ 22222222")
                                         countdata+=1
-                                        
+                                    else:
+                                        print("Response isssssssssss     ",itemslist_of_invoice)    
                                           
                                 else:
                                     print(time.time()-full_time)
@@ -3273,12 +3278,13 @@ class AllocatedToVehicleDeliveryOrderList_f(APIView):
                     vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
                         'userid', ''))
                     finaldelveyorder=[]
+                    slotdetail=slotinfo.objects.get(id=serializer.data.get('slotinfoid'))
                     if vehicleobj:
                          for vehcledata in vehicleobj:
                                 dictdata={}
                                 # print("------------>>>> ",vehcledata.id)
                                 trip_count_obj = ordersdelivery.objects.values('trip_count').filter(created_date__date=created_date,is_deleted=0,user_id=serializer.data.get(
-                                    'userid', ''),vehicle_id=vehcledata.id,is_published=1).distinct()
+                                    'userid', ''),vehicle_id=vehcledata.id,is_published=1,time_slot=slotdetail.slottime).distinct()
                                 trip_count_arr=[d["trip_count"] for d in trip_count_obj]
                                 trip_list_count=[]
                                 total_collected_amount=0.0

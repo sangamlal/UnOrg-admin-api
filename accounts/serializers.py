@@ -137,6 +137,7 @@ class EditSlotSerializer(serializers.ModelSerializer):
 
 class GetSlotListSerializer(serializers.Serializer):
     userid = serializers.CharField(required=True)
+    slotinfoid = serializers.CharField(required=False,allow_blank=True, allow_null=True)
     class Meta:
         fields = '__all__'
 
