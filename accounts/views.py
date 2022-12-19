@@ -3051,11 +3051,11 @@ class AssignOrdertoVehicle_fun(APIView):
                 slot_obj = slotinfo.objects.get(id= slotid)
                 slot_obj_time = slot_obj.slottime
                 userid= serializer.data.get('userid')
-                lastorderofvehicle=ordersdelivery.objects.filter( user_id=userid,is_deleted=0).last()
-                if lastorderofvehicle:
-                    if lastorderofvehicle.time_slot != slot_obj_time:
-                        update_is_deleted=ordersdelivery.objects.filter(time_slot=lastorderofvehicle.time_slot,is_deleted=0 , user_id=userid)
-                        update_is_deleted.update(is_deleted=1)
+                # lastorderofvehicle=ordersdelivery.objects.filter( user_id=userid,is_deleted=0).last()
+                # if lastorderofvehicle:
+                #     if lastorderofvehicle.time_slot != slot_obj_time:
+                #         update_is_deleted=ordersdelivery.objects.filter(time_slot=lastorderofvehicle.time_slot,is_deleted=0 , user_id=userid)
+                #         update_is_deleted.update(is_deleted=1)
                 for vehicle_order_obj in assignorderlistconvertedlist:
                     vehicleid= vehicle_order_obj.get("vehicleid")
                     orderid=vehicle_order_obj.get("orderid")
@@ -3372,41 +3372,55 @@ class PublishOrderDeliveryList_fun(APIView):
     def post(self, request):
         try:
             print("--------------")
-            datacheck=User.objects.filter(id=request.data.get("userid") if request.data.get("userid") else 0)
+            serializer = publish_order_Serializer(data=request.data)
+            datacheck=User.objects.filter(id= serializer.data.get('userid', ''))
             #Check Data 
-            if datacheck:
-                created_date = datetime.now().date()
-                created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
-                checkorderdata=ordersdelivery.objects.filter(created_date__date = created_date,user_id=request.data.get("userid") ,is_deleted=0)
-                if checkorderdata:
-                    #Getting data of user
-                    checkupdate=checkorderdata.update(
-                        is_published=1
-                    )
-            
-                    json_data = {
-                        'status_code': 200,
-                        'status': 'Success',
-                        'data': checkupdate,
-                        'message': 'Order published successfully'
-                    }
-                    return Response(json_data, status.HTTP_200_OK)
+            if serializer.is_valid():
+                if datacheck:
+                    created_date = datetime.now().date()
+                    created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
+                    vehicle_list = json.loads(serializer.data.get('vehicles', ''))
+                    delete_prev_data =  ordersdelivery.objects.filter(user_id=request.data.get("userid") ,is_deleted=0,is_published=1,vehicle_id__in=vehicle_list)
+                    if delete_prev_data:
+                        delete_prev_data = delete_prev_data.update(is_deleted = 1)
+                    checkorderdata=ordersdelivery.objects.filter(created_date__date = created_date,user_id=request.data.get("userid") ,is_deleted=0)
+                    if checkorderdata:
+                        #Getting data of user
+                        checkupdate=checkorderdata.update(
+                            is_published=1
+                        )
+                
+                        json_data = {
+                            'status_code': 200,
+                            'status': 'Success',
+                            'data': checkupdate,
+                            'message': 'Order published successfully'
+                        }
+                        return Response(json_data, status.HTTP_200_OK)
+                    else:
+                        json_data = {
+                            'status_code': 204,
+                            'status': 'Success',
+                            'data': '',
+                            'message': 'Order not found for this user'
+                        }
+                        return Response(json_data, status.HTTP_204_NO_CONTENT)
                 else:
                     json_data = {
                         'status_code': 204,
                         'status': 'Success',
                         'data': '',
-                        'message': 'Order not found for this user'
+                        'message': 'User not found'
                     }
-                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+                return Response(json_data, status.HTTP_204_NO_CONTENT)
             else:
                 json_data = {
-                    'status_code': 204,
-                    'status': 'Success',
-                    'data': '',
-                    'message': 'User not found'
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
                 }
-                return Response(json_data, status.HTTP_204_NO_CONTENT)
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
 
         except Exception as err:
             print("Error :", err)
