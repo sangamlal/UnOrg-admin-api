@@ -3513,6 +3513,82 @@ class GetZohoCredentialByUserID_fun(APIView):
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class GetTodayInvoicesLength_fun(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            print("--------------")
+            serializer =GetTodayInvoicesLengthSerializer(data=request.data)
+            if serializer.is_valid():
+                datacheck=User.objects.filter(id=serializer.data.get("userid")).exists()
+                # print("------",datacheck)
+                #Check Data 
+                if datacheck:
+                    req = requests.Session()
+                    
+                    response = req.post("https://accounts.zoho.in/oauth/v2/token?", params=parameters)
+                    if response.status_code == 200:
+                        data =   response.json()
+                        # print("+++++++++  ",data)
+                        accesstoken = data['access_token']
+                        # print("-------",accesstoken)
+                        currentdate=datetime.now().date()
+                        headers = {
+                        'Content-Type':'application/json',
+                        'Authorization':'Zoho-oauthtoken ' + str(accesstoken)
+                                }
+                        
+                        response = req.get("https://books.zoho.in/api/v3/invoices?date_start={}&date_end={}".format(currentdate,currentdate), headers=headers)
+                        if response.status_code == 200:
+                            data1 = response.json()
+                            invoices=data1.get("invoices")
+                            
+                            json_data = {
+                                'status_code': 200,
+                                'status': 'Success',
+                                'data': len(invoices),
+                                'message': 'User found'
+                            }
+                            return Response(json_data, status.HTTP_200_OK)
+                        else:
+                            json_data = {
+                                    'status_code': 200,
+                                    'status': 'Success',
+                                    'data': 0,
+                                    'message': 'User found'
+                            }
+                else:
+                    print("================")
+                    json_data = {
+                        'status_code': 204,
+                        'status': 'Success',
+                        'data': 0,
+                        'message': 'User not found'
+                    }
+                    return Response(json_data, status.HTTP_204_NO_CONTENT)
+            else:
+                print("I am api called-------")
+                json_data = {
+                    'status_code': 300,
+                    'status': 'Failed',
+                    'error': serializer.errors,
+                    'remark': 'Serializer error'
+                }
+                return Response(json_data, status.HTTP_300_MULTIPLE_CHOICES)
+            
+
+        except Exception as err:
+            print("Error :", err)
+            json_data = {
+                'status_code': 500,
+                'status': 'Failed',
+                'error': f'{err}',
+                'remark': 'Landed in exception',
+            }
+            return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
 
 
 

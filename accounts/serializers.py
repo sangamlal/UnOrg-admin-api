@@ -262,3 +262,10 @@ class warehousebrancheslistSerializer(serializers.Serializer):
 class publish_order_Serializer(serializers.Serializer):
     vehicles = serializers.CharField(required=True)
     userid = serializers.CharField(required=True)
+
+
+class GetTodayInvoicesLengthSerializer(serializers.Serializer):
+    userid = serializers.CharField(required=True)
+
+    class Meta:
+        fields = '__all__'
