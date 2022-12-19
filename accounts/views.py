@@ -2827,8 +2827,8 @@ class NewFetchInvoiceData(APIView):
                                 print("Current Time =", start_time)
                                 count_for_invoice_call=0
                                 for invoice in invoices:
-                                    if count_for_invoice_call%95==0:
-                                        time.sleep(60)
+                                    # if count_for_invoice_call%95==0:
+                                    #     time.sleep(60)
                                     # Getting Invoice data
                                     zoho_last_modified_time = invoice.get('last_modified_time')
                                     zoho_branch_id = invoice.get('branch_id')
