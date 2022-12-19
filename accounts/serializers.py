@@ -257,3 +257,7 @@ class warehousebrancheslistSerializer(serializers.Serializer):
 
     class Meta:
         fields = '__all__'
+
+class publish_order_Serializer(serializers.Serializer):
+    vehicles = serializers.CharField(required=True)
+    userid = serializers.CharField(required=True)
