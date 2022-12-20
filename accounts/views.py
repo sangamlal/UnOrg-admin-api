@@ -2849,7 +2849,7 @@ class NewFetchInvoiceData(APIView):
                                     #             continue
                                     start_time = time.time()
                                     itemslist_of_invoice = req.get("https://books.zoho.in/api/v3/invoices/{}".format(invoice.get('invoice_id')), headers=headers)
-                                    print(time.time() - start_time)
+                                    print("strt_____________________",time.time() - start_time)
                                     if itemslist_of_invoice.status_code == 200:
                                         cf_location_coordinates=itemslist_of_invoice.json().get("invoice").get("cf_location_coordinates",0)
                                         cf_location_url=itemslist_of_invoice.json().get("invoice").get("cf_location_url",0)
@@ -2861,16 +2861,18 @@ class NewFetchInvoiceData(APIView):
                                         for item in itemslist_of_invoice.json().get("invoice").get("line_items"):
                                             # print("=======   ",item)
                                                 
-                                            getweight = iteminfo.objects.filter(zoho_item_id=item.get("item_id"),userid=serializer.data.get('userid', ''))
+                                            # getweight = iteminfo.objects.filter(zoho_item_id=item.get("item_id"),userid=serializer.data.get('userid', ''))
                                             #Calculating items waight ----------
-                                            if getweight:
-                                                getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"),userid=serializer.data.get('userid', ''))
-                                                #Multiply item quantity with item waight
-                                                totalitemwaight+=item.get("quantity")*getweightdata.item_waight
+                                            try:
+                                                    getweightdata = iteminfo.objects.get(zoho_item_id=item.get("item_id"),userid=serializer.data.get('userid', ''))
+                                                    #Multiply item quantity with item waight
+                                                    totalitemwaight+=item.get("quantity")*getweightdata.item_waight
+                                            except Exception as e:
+                                                print(e)
                                         
                                         userobj = User.objects.get(id=serializer.data.get('userid', ''))
                                         #Check Invoice id exits for particular user or not
-                                        orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', ''))
+                                        orderobj=orderinfo.objects.filter(invoice_id=invoice.get('invoice_id',''),userid=serializer.data.get('userid', '')).first()
                                         # print("---------------",invoice.get("cf_location_coordinate"))
                                         bool_value=0
                                         if checkcoordinate(s=itemslist_of_invoice.json().get("invoice").get("cf_location_coordinates")):
@@ -2880,7 +2882,7 @@ class NewFetchInvoiceData(APIView):
                                         str_time_now = str(time_now)
                                         print("Data::>>",invoice.get("invoice_number"))
                                         if not orderobj:
-                                            print("Create Condition Called -----------:>>>",countdata)
+                                            # print("Create Condition Called -----------:>>>",countdata)
                                             #Check Is Quardinates available
                                             orderdata=orderinfo.objects.create(
                                                 userid=userobj,
@@ -2904,32 +2906,33 @@ class NewFetchInvoiceData(APIView):
                                             )
                                             orderdata.save()
                                             orderupdatemessage="Invoices updated"
-                                            print("Create Condition Done -----------")
+                                            # print("Create Condition Done -----------")
                                         else:
-                                            print("UPdate Condition -----------:>>>",countdata)
-                                            orderobj.update(                                                
-                                                userid=userobj,
-                                                shipping_address=invoice.get("shipping_address").get("address",''),
-                                                invoice_id=invoice.get("invoice_id",''),
-                                                customer_id=invoice.get("customer_id",''),
-                                                weight=totalitemwaight,
-                                                customer_name=invoice.get("customer_name",''),
-                                                invoice_number=invoice.get("invoice_number",''),
-                                                invoice_total=invoice.get("total",''),
-                                                invoice_balance=invoice.get("balance",''),
-                                                time_slot=invoice.get("cf_delivery_slot"),
-                                                contactno=cusomercontact,
-                                                location_coordinates=cf_location_coordinates,
-                                                location_url=cf_location_url,
-                                                is_coordinate=bool_value,
-                                                is_deleted=0,
-                                                updated_at = time_now,
-                                                created_date=invoicecreateddatetime,
-                                                zoho_updated_time = zoho_last_modified_time)
+                                            # print("UPdate Condition -----------:>>>",countdata)
+                                            orderobj.userid=userobj
+                                            orderobj.shipping_address=invoice.get("shipping_address").get("address",'')
+                                            orderobj.invoice_id=invoice.get("invoice_id",'')
+                                            orderobj.customer_id=invoice.get("customer_id",'')
+                                            orderobj.weight=totalitemwaight
+                                            orderobj.customer_name=invoice.get("customer_name",'')
+                                            orderobj.invoice_number=invoice.get("invoice_number",'')
+                                            orderobj.invoice_total=invoice.get("total",'')
+                                            orderobj.invoice_balance=invoice.get("balance",'')
+                                            orderobj.time_slot=invoice.get("cf_delivery_slot")
+                                            orderobj.contactno=cusomercontact
+                                            orderobj.location_coordinates=cf_location_coordinates
+                                            orderobj.location_url=cf_location_url
+                                            orderobj.is_coordinate=bool_value
+                                            orderobj.is_deleted=0
+                                            orderobj.updated_at = time_now
+                                            orderobj.created_date=invoicecreateddatetime
+                                            orderobj.zoho_updated_time = zoho_last_modified_time
+                                            orderobj.save()
+                                            
                                             print("Update Condition Done -----------")
                                         # print("@@@@@@@@@@@@@ 22222222")
                                         countdata+=1
-                                        
+                                        print("end_____________________",time.time() - start_time)
                                           
                                 else:
                                     print(time.time()-full_time)
