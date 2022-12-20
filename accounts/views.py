@@ -1079,7 +1079,7 @@ class VehicleList_fun(APIView):
                     vehiclelist=[]
                     for data in vehicleobj:
                         totalvehicle_remaining_weight=0
-                        for delivery_order in ordersdelivery.objects.filter(vehicle_id=data.id,user_id=data.userid.id,is_deleted=0):
+                        for delivery_order in ordersdelivery.objects.filter(vehicle_id=data.id,user_id=data.userid.id,is_deleted=0,is_published=0):
                             totalvehicle_remaining_weight+=delivery_order.weight
                         datadict={
                             "id": data.id,
