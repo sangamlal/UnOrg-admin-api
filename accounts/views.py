@@ -2670,13 +2670,13 @@ class GetAppOrderList_f(APIView):
                 created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
                 if vehicledata:
                     #Getting Order by Vehicleid and is_published is True
-                    vehicleobj_for_trip = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=0,vehicle_id=serializer.data.get(
-                        'vehicleid', ''),is_published=1).last()
+                    vehicleobj_for_trip = ordersdelivery.objects.filter(is_deleted=0,vehicle_id=serializer.data.get(
+                        'vehicleid', ''),is_published=1).last()#remove current date
                     trip_count_num=0
                     if vehicleobj_for_trip:
                         trip_count_num=vehicleobj_for_trip.trip_count
-                    vehicleobj = ordersdelivery.objects.filter(created_date__date=created_date,is_deleted=0,vehicle_id=serializer.data.get(
-                        'vehicleid', ''),is_published=1,trip_count=trip_count_num).order_by('serialno')
+                    vehicleobj = ordersdelivery.objects.filter(is_deleted=0,vehicle_id=serializer.data.get(
+                        'vehicleid', ''),is_published=1,trip_count=trip_count_num).order_by('serialno') #remove current date
 
                     total_collected_amount=0.0
                     total_collected_upi=0.0
