@@ -120,6 +120,7 @@ class GetVehicleDetailSerializer(serializers.Serializer):
 class GetVehicleListSerializer(serializers.Serializer):
     userid = serializers.CharField(required=True)
     type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    # slotid = serializers.CharField(required=True)
     class Meta:
         fields = '__all__'
 
@@ -234,6 +235,7 @@ class HistoryGetSlotListSerializer(serializers.Serializer):
     slotinfoid = serializers.CharField(required=True)
     coordinate_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    slotdate = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     class Meta:
         fields = '__all__'
 
@@ -262,7 +264,7 @@ class warehousebrancheslistSerializer(serializers.Serializer):
 class publish_order_Serializer(serializers.Serializer):
     vehicles = serializers.CharField(required=True)
     userid = serializers.CharField(required=True)
-
+    slotid = serializers.CharField(required=True)
 
 class GetTodayInvoicesLengthSerializer(serializers.Serializer):
     userid = serializers.CharField(required=True)

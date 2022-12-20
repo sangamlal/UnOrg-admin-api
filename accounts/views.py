@@ -1074,8 +1074,8 @@ class VehicleList_fun(APIView):
                     if type=='manual':
                         vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get('userid', ''),is_vehicle_not_available=0)
                     else:
-                        vehicleobj = vehicleinfo.objects.filter(is_deleted=0,userid=serializer.data.get(
-                        'userid', '')).exclude(id__in=list_of_data)
+                        vehicleobj = vehicleinfo.objects.filter(is_deleted=0,is_vehicle_not_available=0,userid=serializer.data.get(
+                        'userid', ''))
                     vehiclelist=[]
                     for data in vehicleobj:
                         totalvehicle_remaining_weight=0
@@ -1907,7 +1907,6 @@ class GetOrderbySlotDetail(APIView):
                             for data in data_pop:
                                 try:
                                     invoice_id.append(data.invoice_id)
-                                    print("gotcha")
                                 except Exception as e:
                                     print(e)
                                     pass
@@ -1999,6 +1998,8 @@ class RootOptimazationAPI(APIView):
             if serializer.is_valid():
                 userid = serializer.data.get('userid')
                 datacheck=User.objects.filter(id=userid)
+                created_date = datetime.now().date()
+                created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
                 #Check Data 
                 if datacheck:
                     #Getting data of user
@@ -2053,7 +2054,7 @@ class RootOptimazationAPI(APIView):
                             for data in data_pop:
                                 try:
                                     invoice_id.append(data.invoice_id)
-                                    print("gotcha")
+                                    
                                 except Exception as e:
                                     print(e)
                                     pass
@@ -2153,17 +2154,16 @@ class RootOptimazationAPI(APIView):
                                         if not checkorderdelivery:
                                             vehicleobj=vehicleinfo.objects.get(id=vehicle_id,userid=userid,is_deleted=0)
                                             userobj=User.objects.get(id=userid)
-
                                             print("--------------check_vehicle_for_next_trip:>>",check_vehicle_for_next_trip)
                                             if vehicle_id not in check_vehicle_for_next_trip:
-                                                check_trip_count=ordersdelivery.objects.filter(time_slot=orderinfodata.time_slot , user_id=userid,vehicle_id=vehicle_id).last()
+                                                check_trip_count=ordersdelivery.objects.filter(time_slot=orderinfodata.time_slot , user_id=userid,vehicle_id=vehicle_id,created_date__date=created_date).last()
                                                 print("--------------check_trip_count::>>",check_trip_count)
                                                 check_vehicle_for_next_trip.append(vehicle_id)
-                                                if check_trip_count:
-                                                    trip_count_var=check_trip_count.trip_count+1
-                                                else:
-                                                    trip_count_var=1
-                                                print("--------------trip_count_var::>>",trip_count_var)
+                                                # if check_trip_count:
+                                                #     trip_count_var=check_trip_count.trip_count+1
+                                                # else:
+                                                #     trip_count_var=1
+                                                # print("--------------trip_count_var::>>",trip_count_var)
                                             # print("--------",orderinfodata)
                                             orderdata=ordersdelivery.objects.create(
                                                 order_id=orderinfodata,
@@ -2192,10 +2192,10 @@ class RootOptimazationAPI(APIView):
                                                 is_published=0,
                                                 updated_at=datetime.now(),
                                                 created_date=datetime.now(),
-                                                trip_count=trip_count_var
+                                                trip_count=0
                                             )
                                             orderdata.save()
-                                            vehicleobj.is_vehicle_not_available=1
+                                            vehicleobj.is_vehicle_not_available=0
                                             vehicleobj.save()
                                         else:
                                             print("Else condition----------- ")
@@ -2377,7 +2377,6 @@ class GetOrderwithoutCoordinatesList(APIView):
                             for data in data_pop:
                                 try:
                                     invoice_id.append(data.invoice_id)
-                                    print("gotcha")
                                 except Exception as e:
                                     print(e)
                                     pass
@@ -3109,12 +3108,12 @@ class AssignOrdertoVehicle_fun(APIView):
                                         if checkvehicle.id not in check_vehicle_for_next_trip:
                                             check_trip_count=ordersdelivery.objects.filter(time_slot=checkslotinfo.slottime , user_id=userid,vehicle_id=checkvehicle.id).last()
                                             check_vehicle_for_next_trip.append(checkvehicle.id)
-                                            if check_trip_count and not(checkvehicle.is_vehicle_not_available):
-                                                trip_count_var=check_trip_count.trip_count+1
-                                            elif not check_trip_count:
-                                                trip_count_var=1
-                                            else:
-                                                trip_count_var=check_trip_count.trip_count
+                                            # if check_trip_count:
+                                            #     trip_count_var=check_trip_count.trip_count+1
+                                            # elif not check_trip_count:
+                                            #     trip_count_var=1
+                                            # else:
+                                            #     trip_count_var=check_trip_count.trip_count
                                         print("===========>>>>>>22222222>>>>>>",check_vehicle_for_next_trip)
                                       
                                         orderdata=ordersdelivery.objects.create(
@@ -3147,10 +3146,10 @@ class AssignOrdertoVehicle_fun(APIView):
                                             is_vehicle_update=1,
                                             is_priority_change=0,
                                             is_manually_assigned=is_set_manual,
-                                            trip_count=trip_count_var,
+                                            trip_count=0,
                                         )
                                         orderdata.save()
-                                        checkvehicle.is_vehicle_not_available=1
+                                        checkvehicle.is_vehicle_not_available=0
                                         checkvehicle.save()
                                         message="Order assigned to vehicle."
                                         serialcount+=1
@@ -3217,12 +3216,12 @@ class AssignOrdertoVehicle_fun(APIView):
                                         if checkvehicle.id not in check_vehicle_for_next_trip:
                                             check_trip_count=ordersdelivery.objects.filter(time_slot=checkslotinfo.slottime , user_id=userid,vehicle_id=checkvehicle.id).last()
                                             check_vehicle_for_next_trip.append(checkvehicle.id)
-                                            if check_trip_count and not(checkvehicle.is_vehicle_not_available):
-                                                trip_count_var=check_trip_count.trip_count+1
-                                            elif not check_trip_count:
-                                                trip_count_var=1
-                                            else:
-                                                trip_count_var=check_trip_count.trip_count
+                                            # if check_trip_count and not(checkvehicle.is_vehicle_not_available):
+                                            #     trip_count_var=check_trip_count.trip_count+1
+                                            # elif not check_trip_count:
+                                            #     trip_count_var=1
+                                            # else:
+                                            #     trip_count_var=check_trip_count.trip_count
                                         checkorderdelivery_list=ordersdelivery.objects.filter(vehicle_id=checkorderdelivery.vehicle_id.id,user_id=userid,is_deleted=0)
                                         if len(checkorderdelivery_list)>1:
                                             oldvehicleobj = vehicleinfo.objects.get(id=checkorderdelivery.vehicle_id.id , userid=userid)
@@ -3231,9 +3230,9 @@ class AssignOrdertoVehicle_fun(APIView):
                                         checkorderdelivery.vehicle_id=checkvehicle
                                         checkorderdelivery.is_vehicle_update=0 if checkorderdelivery.vehicle_id==checkvehicle.id else 1
                                         checkorderdelivery.updated_at=timezone.now()
-                                        checkorderdelivery.trip_count=trip_count_var
+                                        checkorderdelivery.trip_count=0
                                         checkorderdelivery.save()
-                                        checkvehicle.is_vehicle_not_available=1
+                                        checkvehicle.is_vehicle_not_available=0
                                         checkvehicle.save()
                                         message="Order  changed"
                                         
@@ -3399,16 +3398,30 @@ class PublishOrderDeliveryList_fun(APIView):
                     created_date = datetime.now().date()
                     created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
                     vehicle_list = json.loads(serializer.data.get('vehicles', ''))
+                    slotid = serializer.data.get('slotid', '')
+                    slotdata=slotinfo.objects.get(id=slotid)
                     delete_prev_data =  ordersdelivery.objects.filter(user_id=request.data.get("userid") ,is_deleted=0,is_published=1,vehicle_id__in=vehicle_list)
-                    if delete_prev_data:
-                        delete_prev_data = delete_prev_data.update(is_deleted = 1)
+                    for old_data in delete_prev_data:
+                        if old_data.time_slot!= slotdata.slottime:
+                            old_data.is_deleted = 1
+                            old_data.save()
+                    
                     checkorderdata=ordersdelivery.objects.filter(created_date__date = created_date,user_id=request.data.get("userid") ,is_deleted=0)
+                    for v_id in vehicle_list:
+                        trip_count_obj=ordersdelivery.objects.filter(time_slot =slotdata.slottime,created_date__date = created_date, is_published=0,user_id=request.data.get("userid") ,is_deleted=0,vehicle_id=v_id)
+                        if trip_count_obj:
+                            trip_count_value_obj=ordersdelivery.objects.filter(time_slot =slotdata.slottime,created_date__date = created_date,is_published=1,user_id=request.data.get("userid") ,is_deleted=0,vehicle_id=v_id).last()
+                            if trip_count_value_obj:
+                                trip_count_obj.update(trip_count=trip_count_value_obj.trip_count+1)
+                            else:
+                                trip_count_obj.update(trip_count=1)
                     if checkorderdata:
                         #Getting data of user
                         checkupdate=checkorderdata.update(
                             is_published=1
                         )
-                
+                        vehicle_obj = vehicleinfo.objects.filter(id__in=vehicle_list)
+                        vehicle_obj.update(is_vehicle_not_available=1)
                         json_data = {
                             'status_code': 200,
                             'status': 'Success',
@@ -3782,10 +3795,11 @@ class HistoryAllocatedToVehicleDeliveryOrderList_f(APIView):
                         if vehicleobj:
                             created_date = datetime.now().date()
                             created_date = datetime.strptime(str(created_date),"%Y-%m-%d")
+                            picked_created_date = userid=serializer.data.get('slotdate')
                             for vehcledata in vehicleobj:
                                 dictdata={}
                                 # print("------------>>>> ",vehcledata.id)
-                                trip_count_obj = ordersdelivery.objects.values('trip_count').filter(created_date__date=created_date,is_deleted=1,user_id=serializer.data.get(
+                                trip_count_obj = ordersdelivery.objects.values('trip_count').filter(created_date__date=picked_created_date,is_deleted=1,user_id=serializer.data.get(
                                     'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=1).distinct()
                                 trip_count_arr=[d["trip_count"] for d in trip_count_obj]
                                 trip_list_count=[]
@@ -3930,11 +3944,11 @@ class RootOptimizeOrderDeliveryList_f(APIView):
                                 # print("------------>>>> ",vehcledata.id)
                                 if type=='ro':
                                     vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
-                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=0).exclude(vehicle_id__in=list_of_data).order_by('serialno')
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=0,is_manually_assigned=0).exclude(vehicle_id__in=list_of_data).order_by('serialno')
                                 
                                 elif type=='manual':
                                     vehicleobj = ordersdelivery.objects.filter(is_deleted=0,user_id=serializer.data.get(
-                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=0).order_by('serialno')
+                                    'userid', ''),vehicle_id=vehcledata.id,time_slot=slotdata.slottime,is_published=0,is_manually_assigned=1).order_by('serialno')
                                 
                                 total_collected_amount=0.0
                                 total_collected_upi=0.0
@@ -4269,7 +4283,7 @@ class is_vehicle_free(APIView):
                     status="Success"
                     message = "You are free to pick new orders"
                 else:
-                    status_code=404
+                    status_code=400
                     status="Fail"
                     message = "Dilever all order first"
             else:
