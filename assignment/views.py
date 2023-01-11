@@ -50,7 +50,7 @@ class ItemsView(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -76,7 +76,7 @@ class ItemsView(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -85,21 +85,30 @@ class ItemsView(APIView):
 class Item(APIView):
     def get(self, request, id):
         try:
-            Items_obj = Items.objects.get(id=id)
-            Items_dict = {
-                'item_name': Items_obj.item_name,
-                'item_quantity': Items_obj.item_quantity,
-                'item_unit': Items_obj.item_unit,
-                'item_weight': Items_obj.item_weight,
-            }
+            Items_objs = Items.objects.filter(id=id)
+            if Items_objs:
+                Items_obj = Items.objects.get(id=id)
+                Items_dict = {
+                    'item_name': Items_obj.item_name,
+                    'item_quantity': Items_obj.item_quantity,
+                    'item_unit': Items_obj.item_unit,
+                    'item_weight': Items_obj.item_weight,
+                }
 
-            json_data = {
-                'status_code': 200,
-                'status': 'Success',
-                'data': Items_dict,
-                'message': 'Item found'
-            }
-            return Response(json_data, status.HTTP_200_OK)
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Success',
+                    'data': Items_dict,
+                    'message': 'Item found'
+                }
+                return Response(json_data, status.HTTP_200_OK)
+            else:
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Success',
+                    'message': 'Item not found'
+                }
+                return Response(json_data, status.HTTP_200_OK)
         except Exception as err:
             print("Error :", err)
             json_data = {
@@ -132,7 +141,7 @@ class Item(APIView):
                         'status_code': 205,
                         'status': 'Success',
                         'vehicleinfoid': 'Item data update',
-                        'message': 'Item data successfully'
+                        'message': 'Item data changed successfully'
                     }
                     return Response(json_data, status.HTTP_205_RESET_CONTENT)
                 else:
@@ -156,21 +165,35 @@ class Item(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(slef, requrest, id):
         try:
-            Items_obj = Items.objects.get(id=id)
-            Items_obj.delete()
+            Items_objs = Items.objects.filter(id=id)
+            if Items_objs:
+                Items_obj = Items.objects.get(id=id)
+                Items_obj.delete()
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Success',
+                    'message': 'Item deleted Successfully'
+                }
+            else:
+                json_data = {
+                    'status_code': 200,
+                    'status': 'Success',
+                    'message': 'Item Not Found'
+                }
+            return Response(json_data, status.HTTP_200_OK)
         except Exception as err:
             print("Error :", err)
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -199,7 +222,7 @@ class Units(APIView):
             json_data = {
                 'status_code': 500,
                 'status': 'Failed',
-                'error': err,
+                'error': f'{err}',
                 'remark': 'Landed in exception',
             }
             return Response(json_data, status.HTTP_500_INTERNAL_SERVER_ERROR)
